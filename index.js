@@ -2,6 +2,16 @@ const configs = {
   separator: "."
 };
 
+const {
+  slice: arraySlice,
+  shift: arrayShift,
+  unshift: arrayUnshift,
+  push: arrayPush,
+  pop: arrayPop,
+  splice: arraySplice,
+  sort: arraySort
+} = Array.prototype;
+
 export function configure(newConfigs) {
   Object.assign(configs, newConfigs);
 }
@@ -16,7 +26,7 @@ class Immutable {
   }
 
   apply(modifier) {
-    const args = [].slice.call(arguments, 1);
+    const args = arraySlice.call(arguments, 1);
     if (typeof modifier === "string") {
       if (modifier in actions) {
         modifier = actions[modifier];
@@ -42,9 +52,9 @@ class Immutable {
       }
     }
 
-    this.children.forEach(x => {
+    for (let x of this.children) {
       this.value[x.path] = x.value;
-    });
+    }
 
     if (this.parent) {
       this.parent.change();
@@ -69,17 +79,19 @@ class Immutable {
 }
 
 export function $toggle(current) {
-  const props = [].slice.call(arguments, 1);
+  const props = arraySlice.call(arguments, 1);
   if (!props.length) {
     return !current;
   }
   const newValue = clone(current);
-  props.forEach(prop => (newValue[prop] = !newValue[prop]));
+  for (let prop of props) {
+    newValue[prop] = !newValue[prop];
+  }
   return newValue;
 }
 
 export function $unset(current) {
-  const props = [].slice.call(arguments, 1);
+  const props = arraySlice.call(arguments, 1);
   if (!current) return;
   let newValue = current;
   props.forEach(prop => {
@@ -94,56 +106,58 @@ export function $unset(current) {
   return newValue;
 }
 
-function arrayOp(array, method, args) {
+function arrayOp(array, modifier) {
   if (!array) {
     array = [];
   } else {
     array = array.slice();
   }
-  array[method](...args);
+  modifier(array);
   return array;
 }
 
 export function $splice(array, index, count) {
-  const newItems = [].slice.call(arguments, 3);
+  const newItems = arraySlice.call(arguments, 3);
   if (newItems.length || count) {
-    return arrayOp(array, "splice", [index, count].concat(newItems));
+    return arrayOp(array, x =>
+      arraySplice.apply(x, [index, count].concat(newItems))
+    );
   }
   return array;
 }
 
 export function $push(array) {
-  const newItems = [].slice.call(arguments, 1);
+  const newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
-    return arrayOp(array, "push", newItems);
+    return arrayOp(array, x => arrayPush.apply(x, newItems));
   }
   return array;
 }
 
 export function $unshift(array) {
-  const newItems = [].slice.call(arguments, 1);
+  const newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
-    return arrayOp(array, "unshift", newItems);
+    return arrayOp(array, x => arrayUnshift.apply(x, newItems));
   }
   return array;
 }
 
 export function $pop(array) {
   if (!array || array.length) {
-    return arrayOp(array, "pop");
+    return arrayOp(array, x => x.pop());
   }
   return array;
 }
 
 export function $shift(array) {
   if (!array || array.length) {
-    return arrayOp(array, "pop");
+    return arrayOp(array, x => x.shift());
   }
   return array;
 }
 
 export function $sort(array, sorter) {
-  return arrayOp(array, "sort", sorter);
+  return arrayOp(array, x => x.sort(sorter));
 }
 
 function clone(value) {
@@ -155,7 +169,7 @@ const isPlainObject = val =>
   !!val && typeof val === "object" && val.constructor === Object;
 
 export function $remove(array) {
-  const items = [].slice.call(arguments, 1);
+  const items = arraySlice.call(arguments, 1);
   const newArray = array.filter(x => items.indexOf(x) === -1);
   return newArray.length === array.length ? array : newArray;
 }
@@ -169,7 +183,7 @@ export function $swap(current, from, to) {
 }
 
 export function $merge(obj) {
-  const values = [].slice.call(arguments, 1);
+  const values = arraySlice.call(arguments, 1);
   if (values.length) {
     let mergedObj = obj;
     values.forEach(value => {
@@ -190,11 +204,13 @@ export function $merge(obj) {
 }
 
 export function $set(current) {
-  const args = [].slice.call(arguments, 1);
+  const args = arraySlice.call(arguments, 1);
   if (args.length < 2) {
     return args[0];
   }
-  const [prop, value] = args;
+  // don't use destructing to improve performance
+  const prop = args[0];
+  const value = args[1];
   const newValue = clone(current);
   newValue[prop] = value;
   return newValue;
@@ -204,7 +220,9 @@ export function update(state, changes) {
   const root = new Immutable(state);
 
   function traversal(parent, node) {
-    Object.entries(node).forEach(([key, value]) => {
+    for (let pair of Object.entries(node)) {
+      const key = pair[0];
+      const value = pair[1];
       const child = parent.childFromPath(key);
       if (value instanceof Array) {
         // is spec
@@ -216,14 +234,14 @@ export function update(state, changes) {
           const spec = value[0];
           if (spec instanceof Array) {
             // apply for each child
-            Object.keys(child.value).forEach(key => {
+            for (let key of Object.keys(child.value)) {
               const newChild = child.child(key);
               newChild.apply.apply(newChild, spec);
-            });
+            }
           } else {
-            Object.keys(child.value).forEach(key => {
+            for (let key of Object.keys(child.value)) {
               traversal(child.child(key), spec);
-            });
+            }
           }
         }
       } else if (isPlainObject(value)) {
@@ -231,7 +249,7 @@ export function update(state, changes) {
       } else {
         child.apply($set, value);
       }
-    });
+    }
   }
 
   if (changes instanceof Array) {
