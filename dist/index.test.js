@@ -31,7 +31,9 @@ describe('samples', function () {
         data1: new Date(),
         data2: true
       },
-      sqrt: 100
+      sqrt: 100,
+      doubleItems: [1, 2, 3, 4, 5, 6, 7, 8],
+      swapItems: ['left', 'right']
     };
     var specs = {
       'a.b.c.d.e.f': [_index.$set, 100],
@@ -45,7 +47,11 @@ describe('samples', function () {
       toggleMyProp: [_index.$toggle, 'done', 'completed'],
       unsetMyProp: [_index.$unset, 'data1', 'data2'],
       removeSecond: [_index.$splice, 1, 1],
-      removeAppleAndBanana: [_index.$remove, 'Apple', 'Banana']
+      removeAppleAndBanana: [_index.$remove, 'Apple', 'Banana'],
+      doubleItems: [[function (x) {
+        return x * 2;
+      }]],
+      swapItems: ['swap', 0, 1]
     };
     var result = (0, _index.update)(original, specs);
 
@@ -77,7 +83,9 @@ describe('samples', function () {
       unsetMyProp: {},
       sqrt: 10,
       removeSecond: [1, 3, 4],
-      removeAppleAndBanana: ['Orange']
+      removeAppleAndBanana: ['Orange'],
+      doubleItems: [2, 4, 6, 8, 10, 12, 14, 16],
+      swapItems: ['right', 'left']
     });
   });
 });

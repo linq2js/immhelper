@@ -6,12 +6,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+exports.configure = configure;
 exports.$toggle = $toggle;
 exports.$unset = $unset;
 exports.$splice = $splice;
@@ -21,13 +20,23 @@ exports.$pop = $pop;
 exports.$shift = $shift;
 exports.$sort = $sort;
 exports.$remove = $remove;
+exports.$swap = $swap;
 exports.$merge = $merge;
 exports.$set = $set;
 exports.update = update;
+exports.define = define;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var configs = {
+  separator: /\./
+};
+
+function configure(newConfigs) {
+  Object.assign(configs, newConfigs);
+}
 
 var Immutable = function () {
   function Immutable(value, parent, path) {
@@ -90,7 +99,7 @@ var Immutable = function () {
   }, {
     key: 'childFromPath',
     value: function childFromPath(path) {
-      return path.split(/\./).reduce(function (parent, path) {
+      return path.split(configs.separator).reduce(function (parent, path) {
         return parent.child(path);
       }, this);
     }
@@ -107,25 +116,16 @@ function $toggle(current) {
   if (!props.length) {
     return !current;
   }
-
-  if (current instanceof Array) {
-    var array = current.slice();
-    props.forEach(function (prop) {
-      return array[prop] = !array[prop];
-    });
-    return array;
-  }
-  var obj = Object.assign({}, current);
+  var newValue = clone(current);
   props.forEach(function (prop) {
-    return obj[prop] = !obj[prop];
+    return newValue[prop] = !newValue[prop];
   });
-  return obj;
+  return newValue;
 }
 
 function $unset(current) {
   if (!current) return;
   var newValue = current;
-  var isArray = current instanceof Array;
 
   for (var _len3 = arguments.length, props = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
     props[_key3 - 1] = arguments[_key3];
@@ -134,11 +134,7 @@ function $unset(current) {
   props.forEach(function (prop) {
     if (prop in newValue) {
       if (newValue === current) {
-        if (isArray) {
-          newValue = current.slice();
-        } else {
-          newValue = Object.assign({}, current);
-        }
+        newValue = clone(current);
       }
       delete newValue[prop];
     }
@@ -210,6 +206,11 @@ function $sort(array, sorter) {
   return arrayOp(array, 'sort', sorter);
 }
 
+function clone(value) {
+  if (value instanceof Array) return value.slice();
+  return Object.assign({}, value);
+}
+
 var isPlainObject = function isPlainObject(val) {
   return !!val && (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' && val.constructor === Object;
 };
@@ -223,6 +224,14 @@ function $remove(array) {
     return items.indexOf(x) === -1;
   });
   return newArray.length === array.length ? array : newArray;
+}
+
+function $swap(current, from, to) {
+  var newValue = clone(current);
+  var temp = newValue[from];
+  newValue[from] = newValue[to];
+  newValue[to] = temp;
+  return newValue;
 }
 
 function $merge(obj) {
@@ -260,14 +269,9 @@ function $set(current) {
   var prop = args[0],
       value = args[1];
 
-  if (current instanceof Array) {
-    var array = current.slice();
-    array[prop] = value;
-    return array;
-  }
-  var obj = _extends({}, current);
-  obj[prop] = value;
-  return obj;
+  var newValue = clone(current);
+  newValue[prop] = value;
+  return newValue;
 }
 
 function update(state, changes) {
@@ -281,9 +285,22 @@ function update(state, changes) {
 
       var child = parent.childFromPath(key);
       if (value instanceof Array) {
-        if (value[0] instanceof Function) {
-          child.apply.apply(child, _toConsumableArray(value));
+        // is spec
+        if (value[0] instanceof Function || typeof value[0] === 'string') {
+          if (typeof value[0] === 'string') {
+            // is action name
+            var actionName = value[0];
+            if (actionName in actions) {
+              child.apply.apply(child, _toConsumableArray([actions[actionName]].concat(value.slice(1))));
+            } else {
+              throw new Error('No action \'' + actionName + '\'\' defined');
+            }
+          } else {
+            // is modifier and its args
+            child.apply.apply(child, _toConsumableArray(value));
+          }
         } else {
+          // is sub spec
           if (child.value instanceof Array) {
             var spec = value[0];
             if (spec instanceof Array) {
@@ -317,5 +334,40 @@ function update(state, changes) {
   }
 
   return root.value;
+}
+
+var actions = exports.actions = {
+  $merge: $merge,
+  merge: $merge,
+  $pop: $pop,
+  pop: $pop,
+  $push: $push,
+  push: $push,
+  $remove: $remove,
+  remove: $remove,
+  $set: $set,
+  set: $set,
+  $shift: $shift,
+  shift: $shift,
+  $sort: $sort,
+  sort: $sort,
+  $splice: $splice,
+  splice: $splice,
+  $toggle: $toggle,
+  toggle: $toggle,
+  $unset: $unset,
+  unset: $unset,
+  $unshift: $unshift,
+  unshift: $unshift,
+  $swap: $swap,
+  swap: $swap
+};
+
+function define(name, action) {
+  if (isPlainObject(name)) {
+    Object.assign(actions, action);
+  } else {
+    actions[name] = action;
+  }
 }
 //# sourceMappingURL=index.js.map

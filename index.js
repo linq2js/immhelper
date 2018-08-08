@@ -1,3 +1,11 @@
+const configs = {
+  separator: /\./
+};
+
+export function configure(newConfigs) {
+  Object.assign(configs, newConfigs);
+}
+
 class Immutable {
   constructor(value, parent, path) {
     this.parent = parent;
@@ -46,7 +54,9 @@ class Immutable {
   }
 
   childFromPath(path) {
-    return path.split(/\./).reduce((parent, path) => parent.child(path), this);
+    return path
+      .split(configs.separator)
+      .reduce((parent, path) => parent.child(path), this);
   }
 }
 
@@ -54,29 +64,18 @@ export function $toggle(current, ...props) {
   if (!props.length) {
     return !current;
   }
-
-  if (current instanceof Array) {
-    const array = current.slice();
-    props.forEach(prop => (array[prop] = !array[prop]));
-    return array;
-  }
-  const obj = Object.assign({}, current);
-  props.forEach(prop => (obj[prop] = !obj[prop]));
-  return obj;
+  const newValue = clone(current);
+  props.forEach(prop => (newValue[prop] = !newValue[prop]));
+  return newValue;
 }
 
 export function $unset(current, ...props) {
   if (!current) return;
   let newValue = current;
-  const isArray = current instanceof Array;
   props.forEach(prop => {
     if (prop in newValue) {
       if (newValue === current) {
-        if (isArray) {
-          newValue = current.slice();
-        } else {
-          newValue = Object.assign({}, current);
-        }
+        newValue = clone(current);
       }
       delete newValue[prop];
     }
@@ -134,12 +133,25 @@ export function $sort(array, sorter) {
   return arrayOp(array, 'sort', sorter);
 }
 
+function clone(value) {
+  if (value instanceof Array) return value.slice();
+  return Object.assign({}, value);
+}
+
 const isPlainObject = val =>
   !!val && typeof val === 'object' && val.constructor === Object;
 
 export function $remove(array, ...items) {
   const newArray = array.filter(x => items.indexOf(x) === -1);
   return newArray.length === array.length ? array : newArray;
+}
+
+export function $swap(current, from, to) {
+  const newValue = clone(current);
+  const temp = newValue[from];
+  newValue[from] = newValue[to];
+  newValue[to] = temp;
+  return newValue;
 }
 
 export function $merge(obj, ...values) {
@@ -167,16 +179,9 @@ export function $set(current, ...args) {
     return args[0];
   }
   const [prop, value] = args;
-  if (current instanceof Array) {
-    const array = current.slice();
-    array[prop] = value;
-    return array;
-  }
-  const obj = {
-    ...current
-  };
-  obj[prop] = value;
-  return obj;
+  const newValue = clone(current);
+  newValue[prop] = value;
+  return newValue;
 }
 
 export function update(state, changes) {
@@ -186,9 +191,22 @@ export function update(state, changes) {
     Object.entries(node).forEach(([key, value]) => {
       const child = parent.childFromPath(key);
       if (value instanceof Array) {
-        if (value[0] instanceof Function) {
-          child.apply(...value);
+        // is spec
+        if (value[0] instanceof Function || typeof value[0] === 'string') {
+          if (typeof value[0] === 'string') {
+            // is action name
+            const actionName = value[0];
+            if (actionName in actions) {
+              child.apply(...[actions[actionName]].concat(value.slice(1)));
+            } else {
+              throw new Error(`No action '${actionName}'' defined`);
+            }
+          } else {
+            // is modifier and its args
+            child.apply(...value);
+          }
         } else {
+          // is sub spec
           if (child.value instanceof Array) {
             const spec = value[0];
             if (spec instanceof Array) {
@@ -222,4 +240,39 @@ export function update(state, changes) {
   }
 
   return root.value;
+}
+
+export const actions = {
+  $merge,
+  merge: $merge,
+  $pop,
+  pop: $pop,
+  $push,
+  push: $push,
+  $remove,
+  remove: $remove,
+  $set,
+  set: $set,
+  $shift,
+  shift: $shift,
+  $sort,
+  sort: $sort,
+  $splice,
+  splice: $splice,
+  $toggle,
+  toggle: $toggle,
+  $unset,
+  unset: $unset,
+  $unshift,
+  unshift: $unshift,
+  $swap,
+  swap: $swap
+};
+
+export function define(name, action) {
+  if (isPlainObject(name)) {
+    Object.assign(actions, action);
+  } else {
+    actions[name] = action;
+  }
 }
