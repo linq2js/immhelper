@@ -322,6 +322,10 @@ function update(state, changes) {
 
         var key = pair[0];
         var value = pair[1];
+        // convert obj method to custom modifier
+        if (value instanceof Function) {
+          value = [value];
+        }
         var child = parent.childFromPath(key);
         if (value instanceof Array) {
           // is spec

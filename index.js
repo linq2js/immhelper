@@ -222,7 +222,11 @@ export function update(state, changes) {
   function traversal(parent, node) {
     for (let pair of Object.entries(node)) {
       const key = pair[0];
-      const value = pair[1];
+      let value = pair[1];
+      // convert obj method to custom modifier
+      if (value instanceof Function) {
+        value = [value];
+      }
       const child = parent.childFromPath(key);
       if (value instanceof Array) {
         // is spec

@@ -3,11 +3,13 @@
 Lightweight library helps you to update js objects without mutating them
 
 ## Install with npm
+
 ```
 npm install immhelper --save
 ```
 
 ## Samples
+
 ```js
 import {
   update,
@@ -50,8 +52,7 @@ const original = {
   },
   sqrt: 100,
   doubleItems: [1, 2, 3, 4, 5, 6, 7, 8],
-  swapItems: ['left', 'right'],
-  
+  swapItems: ["left", "right"]
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -59,8 +60,10 @@ const specs = {
   "a.b.c.d.e": [$set, "newProp", 100],
   arrayPush: [$push, 1, 2, 3, 4, 5],
   objMerge: [$merge, { age: 20 }, { school: "A" }],
-  // custom function
-  sqrt: [x => Math.sqrt(x)],
+  // using obj method as modifier
+  sqrt(x) {
+    return Math.sqrt(x);
+  },
   // toggle property itself
   toggleMe: [$toggle],
   // toggle child properties
@@ -74,7 +77,8 @@ const specs = {
   // spec can be [action, ...args] or spec tree { a: {  b: ....} }
   doubleItems: [[x => x * 2]],
   // use action name instead of function
-  swapItems: ['swap', 0, 1],
+  swapItems: ["swap", 0, 1],
+  // using sub spec to update all obj values
   increaseProps: [[x => x + 1]]
 };
 const result = update(original, specs);
@@ -108,6 +112,6 @@ expect(result).toEqual({
   removeSecond: [1, 3, 4],
   removeAppleAndBanana: ["Orange"],
   doubleItems: [2, 4, 6, 8, 10, 12, 14, 16],
-  swapItems: ['right', 'left']
+  swapItems: ["right", "left"]
 });
 ```
