@@ -2,6 +2,12 @@
 
 Lightweight library helps you to update js objects without mutating them
 
+## Install with npm
+```
+npm install immhelper --save
+```
+
+## Samples
 ```js
 import {
   update,
