@@ -21,7 +21,6 @@ exports.$remove = $remove;
 exports.$swap = $swap;
 exports.$merge = $merge;
 exports.$set = $set;
-exports.update = update;
 exports.define = define;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -308,7 +307,7 @@ function $set(current) {
   return newValue;
 }
 
-function update(state, changes) {
+var update = exports.update = function update(state, changes) {
   var root = new Immutable(state);
 
   function traversal(parent, node) {
@@ -418,7 +417,7 @@ function update(state, changes) {
   }
 
   return root.value;
-}
+};
 
 exports.default = update;
 var actions = exports.actions = {

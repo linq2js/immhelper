@@ -216,7 +216,7 @@ export function $set(current) {
   return newValue;
 }
 
-export function update(state, changes) {
+export const update = (state, changes) => {
   const root = new Immutable(state);
 
   function traversal(parent, node) {
@@ -263,7 +263,7 @@ export function update(state, changes) {
   }
 
   return root.value;
-}
+};
 
 export default update;
 
