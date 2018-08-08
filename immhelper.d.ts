@@ -8,5 +8,5 @@ declare namespace ImmHelper {
     }
 }
 
-declare var update: ImmHelper.Update;
-export = update;
+declare var updatePath: ImmHelper.Update;
+export = updatePath;

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -21,12 +21,13 @@ exports.$remove = $remove;
 exports.$swap = $swap;
 exports.$merge = $merge;
 exports.$set = $set;
+exports.updatePath = updatePath;
 exports.define = define;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var configs = {
-  separator: "."
+  separator: '.'
 };
 
 var _Array$prototype = Array.prototype,
@@ -53,14 +54,14 @@ var Immutable = function () {
   }
 
   _createClass(Immutable, [{
-    key: "apply",
+    key: 'apply',
     value: function apply(modifier) {
       var args = arraySlice.call(arguments, 1);
-      if (typeof modifier === "string") {
+      if (typeof modifier === 'string') {
         if (modifier in actions) {
           modifier = actions[modifier];
         } else {
-          throw new Error("No action '" + modifier + "'' defined");
+          throw new Error('No action \'' + modifier + '\'\' defined');
         }
       }
       var newValue = modifier.apply(null, [this.value].concat(args));
@@ -71,7 +72,7 @@ var Immutable = function () {
       return this;
     }
   }, {
-    key: "change",
+    key: 'change',
     value: function change() {
       if (!this.changed) {
         this.changed = true;
@@ -112,7 +113,7 @@ var Immutable = function () {
       }
     }
   }, {
-    key: "child",
+    key: 'child',
     value: function child(path) {
       if (path in this.childMap) {
         return this.childMap[path];
@@ -123,9 +124,9 @@ var Immutable = function () {
       return child;
     }
   }, {
-    key: "childFromPath",
+    key: 'childFromPath',
     value: function childFromPath(path) {
-      return path.split(configs.separator).reduce(function (parent, path) {
+      return (path instanceof Array ? path : path.split(configs.separator)).reduce(function (parent, path) {
         return parent.child(path);
       }, this);
     }
@@ -254,7 +255,7 @@ function clone(value) {
 }
 
 var isPlainObject = function isPlainObject(val) {
-  return !!val && (typeof val === "undefined" ? "undefined" : _typeof(val)) === "object" && val.constructor === Object;
+  return !!val && (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' && val.constructor === Object;
 };
 
 function $remove(array) {
@@ -294,6 +295,16 @@ function $merge(obj) {
   return obj;
 }
 
+function createSelectorProxy(path) {
+  var proxy = new Proxy({}, {
+    get: function get(target, prop) {
+      path.push(prop);
+      return proxy;
+    }
+  });
+  return proxy;
+}
+
 function $set(current) {
   var args = arraySlice.call(arguments, 1);
   if (args.length < 2) {
@@ -307,108 +318,108 @@ function $set(current) {
   return newValue;
 }
 
-var update = exports.update = function update(state, changes) {
-  var root = new Immutable(state);
+function traversal(parent, node) {
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
 
-  function traversal(parent, node) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
+  try {
+    for (var _iterator3 = Object.entries(node)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var pair = _step3.value;
 
-    try {
-      for (var _iterator3 = Object.entries(node)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var pair = _step3.value;
+      var key = pair[0];
+      var value = pair[1];
+      // convert obj method to custom modifier
+      if (value instanceof Function) {
+        value = [value];
+      }
+      var child = parent.childFromPath(key);
+      if (value instanceof Array) {
+        // is spec
+        if (value[0] instanceof Function || typeof value[0] === 'string') {
+          // is modifier and its args
+          child.apply.apply(child, value);
+        } else {
+          // is sub spec
+          var spec = value[0];
+          if (spec instanceof Array) {
+            // apply for each child
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
 
-        var key = pair[0];
-        var value = pair[1];
-        // convert obj method to custom modifier
-        if (value instanceof Function) {
-          value = [value];
-        }
-        var child = parent.childFromPath(key);
-        if (value instanceof Array) {
-          // is spec
-          if (value[0] instanceof Function || typeof value[0] === "string") {
-            // is modifier and its args
-            child.apply.apply(child, value);
-          } else {
-            // is sub spec
-            var spec = value[0];
-            if (spec instanceof Array) {
-              // apply for each child
-              var _iteratorNormalCompletion4 = true;
-              var _didIteratorError4 = false;
-              var _iteratorError4 = undefined;
+            try {
+              for (var _iterator4 = Object.keys(child.value)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var _key = _step4.value;
 
+                var newChild = child.child(_key);
+                newChild.apply.apply(newChild, spec);
+              }
+            } catch (err) {
+              _didIteratorError4 = true;
+              _iteratorError4 = err;
+            } finally {
               try {
-                for (var _iterator4 = Object.keys(child.value)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                  var _key = _step4.value;
-
-                  var newChild = child.child(_key);
-                  newChild.apply.apply(newChild, spec);
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                  _iterator4.return();
                 }
-              } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
               } finally {
-                try {
-                  if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                  }
-                } finally {
-                  if (_didIteratorError4) {
-                    throw _iteratorError4;
-                  }
+                if (_didIteratorError4) {
+                  throw _iteratorError4;
                 }
               }
-            } else {
-              var _iteratorNormalCompletion5 = true;
-              var _didIteratorError5 = false;
-              var _iteratorError5 = undefined;
+            }
+          } else {
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
 
+            try {
+              for (var _iterator5 = Object.keys(child.value)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                var _key2 = _step5.value;
+
+                traversal(child.child(_key2), spec);
+              }
+            } catch (err) {
+              _didIteratorError5 = true;
+              _iteratorError5 = err;
+            } finally {
               try {
-                for (var _iterator5 = Object.keys(child.value)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                  var _key2 = _step5.value;
-
-                  traversal(child.child(_key2), spec);
+                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                  _iterator5.return();
                 }
-              } catch (err) {
-                _didIteratorError5 = true;
-                _iteratorError5 = err;
               } finally {
-                try {
-                  if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                    _iterator5.return();
-                  }
-                } finally {
-                  if (_didIteratorError5) {
-                    throw _iteratorError5;
-                  }
+                if (_didIteratorError5) {
+                  throw _iteratorError5;
                 }
               }
             }
           }
-        } else if (isPlainObject(value)) {
-          traversal(child, value);
-        } else {
-          child.apply($set, value);
         }
+      } else if (isPlainObject(value)) {
+        traversal(child, value);
+      } else {
+        child.apply($set, value);
       }
-    } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
     } finally {
-      try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
-        }
-      } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
-        }
+      if (_didIteratorError3) {
+        throw _iteratorError3;
       }
     }
   }
+}
+
+var update = exports.update = function update(state, changes) {
+  var root = new Immutable(state);
 
   if (changes instanceof Array) {
     root.apply.apply(root, changes);
@@ -418,6 +429,46 @@ var update = exports.update = function update(state, changes) {
 
   return root.value;
 };
+
+function updatePath(state) {
+  var root = new Immutable(state);
+
+  for (var _len = arguments.length, specs = Array(_len > 1 ? _len - 1 : 0), _key3 = 1; _key3 < _len; _key3++) {
+    specs[_key3 - 1] = arguments[_key3];
+  }
+
+  var _iteratorNormalCompletion6 = true;
+  var _didIteratorError6 = false;
+  var _iteratorError6 = undefined;
+
+  try {
+    for (var _iterator6 = specs[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var spec = _step6.value;
+
+      var selector = spec[0];
+      var args = spec.slice(1);
+      var path = [];
+      selector(createSelectorProxy(path));
+      var node = path.length ? root.childFromPath(path) : root;
+      node.apply.apply(node, args);
+    }
+  } catch (err) {
+    _didIteratorError6 = true;
+    _iteratorError6 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion6 && _iterator6.return) {
+        _iterator6.return();
+      }
+    } finally {
+      if (_didIteratorError6) {
+        throw _iteratorError6;
+      }
+    }
+  }
+
+  return root.value;
+}
 
 exports.default = update;
 var actions = exports.actions = {

@@ -115,3 +115,52 @@ expect(result).toEqual({
   swapItems: ["right", "left"]
 });
 ```
+
+## Typescript support
+
+```typescript
+declare namespace ImmHelper {
+    // tuple [selector, action, ...args]
+    type UpdateSpec<T> = [(model: T) => any, string | Function, ...any[]];
+    interface Update {
+        <T>(model: T, ...specs: UpdateSpec<T>[]): T;
+
+        default: ImmHelper.Update;
+    }
+}
+
+declare var updatePath: ImmHelper.Update;
+export = updatePath;
+```
+
+## For Typescript fan
+
+```typescript
+/// <reference path="./immhelper.d.ts"/>
+import { updatePath, $push, $set } from "immhelper";
+const state = {
+  a: {
+    b: {
+      c: []
+    }
+  }
+};
+const newState = updatePath(
+  state,
+  [x => x.a.b.c, $push, 1, 2, 3],
+  [x => x.a.b, $set, "newProp", 100]
+);
+console.log(newState);
+```
+
+## Define custom action
+
+```js
+import { define, $set } from "immhelper";
+define({
+  "=": $set,
+  addOne(currentValue, ...args) {
+    return currentValue + 1;
+  }
+});
+```

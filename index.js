@@ -1,5 +1,5 @@
 const configs = {
-  separator: "."
+  separator: '.'
 };
 
 const {
@@ -27,7 +27,7 @@ class Immutable {
 
   apply(modifier) {
     const args = arraySlice.call(arguments, 1);
-    if (typeof modifier === "string") {
+    if (typeof modifier === 'string') {
       if (modifier in actions) {
         modifier = actions[modifier];
       } else {
@@ -72,9 +72,10 @@ class Immutable {
   }
 
   childFromPath(path) {
-    return path
-      .split(configs.separator)
-      .reduce((parent, path) => parent.child(path), this);
+    return (path instanceof Array
+        ? path
+        : path.split(configs.separator)
+    ).reduce((parent, path) => parent.child(path), this);
   }
 }
 
@@ -166,7 +167,7 @@ function clone(value) {
 }
 
 const isPlainObject = val =>
-  !!val && typeof val === "object" && val.constructor === Object;
+  !!val && typeof val === 'object' && val.constructor === Object;
 
 export function $remove(array) {
   const items = arraySlice.call(arguments, 1);
@@ -203,6 +204,19 @@ export function $merge(obj) {
   return obj;
 }
 
+function createSelectorProxy(path) {
+  const proxy = new Proxy(
+    {},
+    {
+      get(target, prop) {
+        path.push(prop);
+        return proxy;
+      }
+    }
+  );
+  return proxy;
+}
+
 export function $set(current) {
   const args = arraySlice.call(arguments, 1);
   if (args.length < 2) {
@@ -216,45 +230,45 @@ export function $set(current) {
   return newValue;
 }
 
-export const update = (state, changes) => {
-  const root = new Immutable(state);
-
-  function traversal(parent, node) {
-    for (let pair of Object.entries(node)) {
-      const key = pair[0];
-      let value = pair[1];
-      // convert obj method to custom modifier
-      if (value instanceof Function) {
-        value = [value];
-      }
-      const child = parent.childFromPath(key);
-      if (value instanceof Array) {
-        // is spec
-        if (value[0] instanceof Function || typeof value[0] === "string") {
-          // is modifier and its args
-          child.apply.apply(child, value);
+function traversal(parent, node) {
+  for (let pair of Object.entries(node)) {
+    const key = pair[0];
+    let value = pair[1];
+    // convert obj method to custom modifier
+    if (value instanceof Function) {
+      value = [value];
+    }
+    const child = parent.childFromPath(key);
+    if (value instanceof Array) {
+      // is spec
+      if (value[0] instanceof Function || typeof value[0] === 'string') {
+        // is modifier and its args
+        child.apply.apply(child, value);
+      } else {
+        // is sub spec
+        const spec = value[0];
+        if (spec instanceof Array) {
+          // apply for each child
+          for (let key of Object.keys(child.value)) {
+            const newChild = child.child(key);
+            newChild.apply.apply(newChild, spec);
+          }
         } else {
-          // is sub spec
-          const spec = value[0];
-          if (spec instanceof Array) {
-            // apply for each child
-            for (let key of Object.keys(child.value)) {
-              const newChild = child.child(key);
-              newChild.apply.apply(newChild, spec);
-            }
-          } else {
-            for (let key of Object.keys(child.value)) {
-              traversal(child.child(key), spec);
-            }
+          for (let key of Object.keys(child.value)) {
+            traversal(child.child(key), spec);
           }
         }
-      } else if (isPlainObject(value)) {
-        traversal(child, value);
-      } else {
-        child.apply($set, value);
       }
+    } else if (isPlainObject(value)) {
+      traversal(child, value);
+    } else {
+      child.apply($set, value);
     }
   }
+}
+
+export const update = (state, changes) => {
+  const root = new Immutable(state);
 
   if (changes instanceof Array) {
     root.apply.apply(root, changes);
@@ -264,6 +278,21 @@ export const update = (state, changes) => {
 
   return root.value;
 };
+
+export function updatePath(state, ...specs) {
+  const root = new Immutable(state);
+
+  for (let spec of specs) {
+    const selector = spec[0];
+    const args = spec.slice(1);
+    const path = [];
+    selector(createSelectorProxy(path));
+    const node = path.length ? root.childFromPath(path) : root;
+    node.apply.apply(node, args);
+  }
+
+  return root.value;
+}
 
 export default update;
 
