@@ -207,22 +207,16 @@ export function update(state, changes) {
           }
         } else {
           // is sub spec
-          if (child.value instanceof Array) {
-            const spec = value[0];
-            if (spec instanceof Array) {
-              // apply for each child
-              child.value.forEach((item, index) => {
-                child.child(index).apply(...spec);
-              });
-            } else {
-              child.value.forEach((item, index) => {
-                traversal(child.child(index), spec);
-              });
-            }
+          const spec = value[0];
+          if (spec instanceof Array) {
+            // apply for each child
+            Object.keys(child.value).forEach(key => {
+              child.child(key).apply(...spec);
+            });
           } else {
-            throw new Error(
-              'Invalid spec. Cannot apply spec for ' + child.value
-            );
+            Object.keys(child.value).forEach(key => {
+              traversal(child.child(key), spec);
+            });
           }
         }
       } else if (isPlainObject(value)) {

@@ -41,7 +41,12 @@ describe('samples', function() {
       },
       sqrt: 100,
       doubleItems: [1, 2, 3, 4, 5, 6, 7, 8],
-      swapItems: ['left', 'right']
+      swapItems: ['left', 'right'],
+      increaseProps: {
+        one: 1,
+        two: 2,
+        three: 3
+      }
     };
     const specs = {
       'a.b.c.d.e.f': [$set, 100],
@@ -55,7 +60,8 @@ describe('samples', function() {
       removeSecond: [$splice, 1, 1],
       removeAppleAndBanana: [$remove, 'Apple', 'Banana'],
       doubleItems: [[x => x * 2]],
-      swapItems: ['swap', 0, 1]
+      swapItems: ['swap', 0, 1],
+      increaseProps: [[x => x + 1]]
     };
     const result = update(original, specs);
 
@@ -89,7 +95,12 @@ describe('samples', function() {
       removeSecond: [1, 3, 4],
       removeAppleAndBanana: ['Orange'],
       doubleItems: [2, 4, 6, 8, 10, 12, 14, 16],
-      swapItems: ['right', 'left']
+      swapItems: ['right', 'left'],
+      increaseProps: {
+        one: 2,
+        two: 3,
+        three: 4
+      }
     });
   });
 });

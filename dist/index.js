@@ -301,22 +301,18 @@ function update(state, changes) {
           }
         } else {
           // is sub spec
-          if (child.value instanceof Array) {
-            var spec = value[0];
-            if (spec instanceof Array) {
-              // apply for each child
-              child.value.forEach(function (item, index) {
-                var _child$child;
+          var spec = value[0];
+          if (spec instanceof Array) {
+            // apply for each child
+            Object.keys(child.value).forEach(function (key) {
+              var _child$child;
 
-                (_child$child = child.child(index)).apply.apply(_child$child, _toConsumableArray(spec));
-              });
-            } else {
-              child.value.forEach(function (item, index) {
-                traversal(child.child(index), spec);
-              });
-            }
+              (_child$child = child.child(key)).apply.apply(_child$child, _toConsumableArray(spec));
+            });
           } else {
-            throw new Error('Invalid spec. Cannot apply spec for ' + child.value);
+            Object.keys(child.value).forEach(function (key) {
+              traversal(child.child(key), spec);
+            });
           }
         }
       } else if (isPlainObject(value)) {

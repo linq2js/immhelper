@@ -44,7 +44,8 @@ const original = {
   },
   sqrt: 100,
   doubleItems: [1, 2, 3, 4, 5, 6, 7, 8],
-  swapItems: ['left', 'right']
+  swapItems: ['left', 'right'],
+  
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -67,7 +68,8 @@ const specs = {
   // spec can be [action, ...args] or spec tree { a: {  b: ....} }
   doubleItems: [[x => x * 2]],
   // use action name instead of function
-  swapItems: ['swap', 0, 1]
+  swapItems: ['swap', 0, 1],
+  increaseProps: [[x => x + 1]]
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
