@@ -1,5 +1,5 @@
 const configs = {
-  separator: /\./
+  separator: "."
 };
 
 export function configure(newConfigs) {
@@ -15,8 +15,16 @@ class Immutable {
     this.childMap = {};
   }
 
-  apply(modifier, ...args) {
-    const newValue = modifier(this.value, ...args);
+  apply(modifier) {
+    const args = [].slice.call(arguments, 1);
+    if (typeof modifier === "string") {
+      if (modifier in actions) {
+        modifier = actions[modifier];
+      } else {
+        throw new Error(`No action '${modifier}'' defined`);
+      }
+    }
+    const newValue = modifier.apply(null, [this.value].concat(args));
     if (newValue !== this.value) {
       this.value = newValue;
       this.change();
@@ -60,7 +68,8 @@ class Immutable {
   }
 }
 
-export function $toggle(current, ...props) {
+export function $toggle(current) {
+  const props = [].slice.call(arguments, 1);
   if (!props.length) {
     return !current;
   }
@@ -69,7 +78,8 @@ export function $toggle(current, ...props) {
   return newValue;
 }
 
-export function $unset(current, ...props) {
+export function $unset(current) {
+  const props = [].slice.call(arguments, 1);
   if (!current) return;
   let newValue = current;
   props.forEach(prop => {
@@ -94,43 +104,46 @@ function arrayOp(array, method, args) {
   return array;
 }
 
-export function $splice(array, index, count, ...newItems) {
+export function $splice(array, index, count) {
+  const newItems = [].slice.call(arguments, 3);
   if (newItems.length || count) {
-    return arrayOp(array, 'splice', [index, count].concat(newItems));
+    return arrayOp(array, "splice", [index, count].concat(newItems));
   }
   return array;
 }
 
-export function $push(array, ...newItems) {
+export function $push(array) {
+  const newItems = [].slice.call(arguments, 1);
   if (newItems.length) {
-    return arrayOp(array, 'push', newItems);
+    return arrayOp(array, "push", newItems);
   }
   return array;
 }
 
-export function $unshift(array, ...newItems) {
+export function $unshift(array) {
+  const newItems = [].slice.call(arguments, 1);
   if (newItems.length) {
-    return arrayOp(array, 'unshift', newItems);
+    return arrayOp(array, "unshift", newItems);
   }
   return array;
 }
 
 export function $pop(array) {
   if (!array || array.length) {
-    return arrayOp(array, 'pop');
+    return arrayOp(array, "pop");
   }
   return array;
 }
 
 export function $shift(array) {
   if (!array || array.length) {
-    return arrayOp(array, 'pop');
+    return arrayOp(array, "pop");
   }
   return array;
 }
 
 export function $sort(array, sorter) {
-  return arrayOp(array, 'sort', sorter);
+  return arrayOp(array, "sort", sorter);
 }
 
 function clone(value) {
@@ -139,9 +152,10 @@ function clone(value) {
 }
 
 const isPlainObject = val =>
-  !!val && typeof val === 'object' && val.constructor === Object;
+  !!val && typeof val === "object" && val.constructor === Object;
 
-export function $remove(array, ...items) {
+export function $remove(array) {
+  const items = [].slice.call(arguments, 1);
   const newArray = array.filter(x => items.indexOf(x) === -1);
   return newArray.length === array.length ? array : newArray;
 }
@@ -154,7 +168,8 @@ export function $swap(current, from, to) {
   return newValue;
 }
 
-export function $merge(obj, ...values) {
+export function $merge(obj) {
+  const values = [].slice.call(arguments, 1);
   if (values.length) {
     let mergedObj = obj;
     values.forEach(value => {
@@ -174,7 +189,8 @@ export function $merge(obj, ...values) {
   return obj;
 }
 
-export function $set(current, ...args) {
+export function $set(current) {
+  const args = [].slice.call(arguments, 1);
   if (args.length < 2) {
     return args[0];
   }
@@ -192,26 +208,17 @@ export function update(state, changes) {
       const child = parent.childFromPath(key);
       if (value instanceof Array) {
         // is spec
-        if (value[0] instanceof Function || typeof value[0] === 'string') {
-          if (typeof value[0] === 'string') {
-            // is action name
-            const actionName = value[0];
-            if (actionName in actions) {
-              child.apply(...[actions[actionName]].concat(value.slice(1)));
-            } else {
-              throw new Error(`No action '${actionName}'' defined`);
-            }
-          } else {
-            // is modifier and its args
-            child.apply(...value);
-          }
+        if (value[0] instanceof Function || typeof value[0] === "string") {
+          // is modifier and its args
+          child.apply.apply(child, value);
         } else {
           // is sub spec
           const spec = value[0];
           if (spec instanceof Array) {
             // apply for each child
             Object.keys(child.value).forEach(key => {
-              child.child(key).apply(...spec);
+              const newChild = child.child(key);
+              newChild.apply.apply(newChild, spec);
             });
           } else {
             Object.keys(child.value).forEach(key => {
@@ -228,13 +235,15 @@ export function update(state, changes) {
   }
 
   if (changes instanceof Array) {
-    root.apply(...changes);
+    root.apply.apply(root, changes);
   } else {
     traversal(root, changes);
   }
 
   return root.value;
 }
+
+export default update;
 
 export const actions = {
   $merge,
