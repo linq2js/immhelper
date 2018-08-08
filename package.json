@@ -1,0 +1,42 @@
+{
+  "name": "immhelper",
+  "version": "1.0.1",
+  "description": "Lightweight library helps you to update js objects without mutating them",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "jest ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linq2js/immhelper.git"
+  },
+  "keywords": [
+    "functional",
+    "flux",
+    "immutable",
+    "data",
+    "stateless",
+    "javascript",
+    "redux",
+    "clone",
+    "copy",
+    "assign"
+  ],
+  "author": "linq2js",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/linq2js/immhelper/issues"
+  },
+  "homepage": "https://github.com/linq2js/immhelper#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "jest": "^23.4.2"
+  },
+  "jest": {
+    "verbose": true,
+    "testURL": "http://localhost/"
+  }
+}
