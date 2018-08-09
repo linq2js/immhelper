@@ -61,6 +61,13 @@ class Immutable {
     }
   }
 
+  backToParent() {
+    // make sure child should be removed fron its parent
+    this.parent.children = this.parent.children.filter(x => x !== this);
+    delete this.parent.childMap[this.path];
+    return this.parent;
+  }
+
   child(path) {
     if (path in this.childMap) {
       return this.childMap[path];
@@ -183,7 +190,7 @@ export function $swap(current, from, to) {
   return newValue;
 }
 
-export function $merge(obj) {
+export function $assign(obj) {
   const values = arraySlice.call(arguments, 1);
   if (values.length) {
     let mergedObj = obj;
@@ -204,16 +211,25 @@ export function $merge(obj) {
   return obj;
 }
 
-function createSelectorProxy(path) {
-  const proxy = new Proxy(
-    {},
-    {
-      get(target, prop) {
-        path.push(prop);
-        return proxy;
-      }
+function createSelectorProxy(context) {
+  const proxy = new Proxy(x => undefined, {
+    get(target, prop) {
+      if (prop === '__context__') return context;
+      context = context.child(prop);
+      return proxy;
+    },
+    set(target, prop, value) {
+      context.apply($set, prop, value);
+      return proxy;
+    },
+    apply(target, thisArg, args) {
+      const action = context.path;
+      // back to parent node
+      context = context.backToParent();
+      context.apply.apply(context, [action].concat(args));
+      return proxy;
     }
-  );
+  });
   return proxy;
 }
 
@@ -283,12 +299,15 @@ export function updatePath(state, ...specs) {
   const root = new Immutable(state);
 
   for (let spec of specs) {
+    if (spec instanceof Function) {
+      spec = [spec];
+    }
     const selector = spec[0];
     const args = spec.slice(1);
-    const path = [];
-    selector(createSelectorProxy(path));
-    const node = path.length ? root.childFromPath(path) : root;
-    node.apply.apply(node, args);
+    const node = selector(createSelectorProxy(root)).__context__;
+    if (args.length) {
+      node.apply.apply(node, args);
+    }
   }
 
   return root.value;
@@ -297,8 +316,9 @@ export function updatePath(state, ...specs) {
 export default update;
 
 export const actions = {
-  $merge,
-  merge: $merge,
+  '=': $set,
+  $assign,
+  assign: $assign,
   $pop,
   pop: $pop,
   $push,

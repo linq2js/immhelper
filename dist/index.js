@@ -19,7 +19,7 @@ exports.$shift = $shift;
 exports.$sort = $sort;
 exports.$remove = $remove;
 exports.$swap = $swap;
-exports.$merge = $merge;
+exports.$assign = $assign;
 exports.$set = $set;
 exports.updatePath = updatePath;
 exports.define = define;
@@ -111,6 +111,18 @@ var Immutable = function () {
       if (this.parent) {
         this.parent.change();
       }
+    }
+  }, {
+    key: 'backToParent',
+    value: function backToParent() {
+      var _this = this;
+
+      // make sure child should be removed fron its parent
+      this.parent.children = this.parent.children.filter(function (x) {
+        return x !== _this;
+      });
+      delete this.parent.childMap[this.path];
+      return this.parent;
     }
   }, {
     key: 'child',
@@ -274,7 +286,7 @@ function $swap(current, from, to) {
   return newValue;
 }
 
-function $merge(obj) {
+function $assign(obj) {
   var values = arraySlice.call(arguments, 1);
   if (values.length) {
     var mergedObj = obj;
@@ -295,10 +307,24 @@ function $merge(obj) {
   return obj;
 }
 
-function createSelectorProxy(path) {
-  var proxy = new Proxy({}, {
+function createSelectorProxy(context) {
+  var proxy = new Proxy(function (x) {
+    return undefined;
+  }, {
     get: function get(target, prop) {
-      path.push(prop);
+      if (prop === '__context__') return context;
+      context = context.child(prop);
+      return proxy;
+    },
+    set: function set(target, prop, value) {
+      context.apply($set, prop, value);
+      return proxy;
+    },
+    apply: function apply(target, thisArg, args) {
+      var action = context.path;
+      // back to parent node
+      context = context.backToParent();
+      context.apply.apply(context, [action].concat(args));
       return proxy;
     }
   });
@@ -445,12 +471,15 @@ function updatePath(state) {
     for (var _iterator6 = specs[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
       var spec = _step6.value;
 
+      if (spec instanceof Function) {
+        spec = [spec];
+      }
       var selector = spec[0];
       var args = spec.slice(1);
-      var path = [];
-      selector(createSelectorProxy(path));
-      var node = path.length ? root.childFromPath(path) : root;
-      node.apply.apply(node, args);
+      var node = selector(createSelectorProxy(root)).__context__;
+      if (args.length) {
+        node.apply.apply(node, args);
+      }
     }
   } catch (err) {
     _didIteratorError6 = true;
@@ -472,8 +501,9 @@ function updatePath(state) {
 
 exports.default = update;
 var actions = exports.actions = {
-  $merge: $merge,
-  merge: $merge,
+  '=': $set,
+  $assign: $assign,
+  assign: $assign,
   $pop: $pop,
   pop: $pop,
   $push: $push,

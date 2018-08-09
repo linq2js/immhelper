@@ -145,15 +145,68 @@ const state = {
     }
   }
 };
-const newState = updatePath(
+const newState1 = updatePath(
   state,
   [x => x.a.b.c, $push, 1, 2, 3],
   [x => x.a.b, $set, "newProp", 100]
 );
-console.log(newState);
+// this is shorter way but there are some limitations
+// 1. Do not try to get prop value from obj, using originalState to get value instead
+// 2. Only mutating actions are allowed
+// 3. Mutating actions must be defined by using define(actionName, func) or define({ actionName: func })
+const newState2 = updatePath(
+  state,
+  x => x.a.b.c.push(1, 2, 3),
+  x => (x.a.b.newProp = 100)
+);
+console.log(newState1, newState2);
 ```
 
-## Define custom action
+## Mutating actions
+
+### [$push, ...items] / ['push', ...items] / actions.push(target, ...items) / actions.$push(target, ...items)
+
+push() all the items in array on the target
+
+### [$pop] / ['pop'] / actions.pop(target) / actions.$pop(target)
+
+### [$unshift, ...items] / ['unshift', ...items] / actions.unshift(target, ...items) / actions.$unshift(target, ...items)
+
+unshift() all the items in array on the target.
+
+### [$splice, index, count, ...items] / ['splice', index, count, ...items] / actions.splice(target, index, count, ...items) / actions.$splice(target, index, count, ...items)
+
+splice() remove item at specified index and push new items at there.
+
+### [$remove, ...items] / ['remove', ...items] / actions.remove(target, ...items) / actions.$remove(target, ...items)
+
+remove specified items from target array
+
+### [$set, value] / ['set', value] / actions.set(target, value) / actions.$pop(target, value)
+
+replace the target entirely.
+
+### [$set, prop, value] / ['set', prop, value] / actions.set(target, prop, value) / actions.$set(target, prop, value)
+
+set value for specified prop of the target
+
+### [$toggle] / ['toggle'] / actions.toggle(target) / actions.$toggle(target)
+
+toggle target's value.
+
+### [$toggle, ...props] / ['toggle', ...props] / actions.toggle(target, ...props) / actions.$toggle(target, ...props)
+
+toggle all prop values of the target
+
+### [$unset, ...props] / ['unset', ...props] / actions.unset(target, ...props) / actions.$unset(target, ...props)
+
+remove keys from the target object or set undefined for array indexes
+
+### [$assign, ...objects] / ['assign' ...objects] / actions.assign(target ...objects) / actions.$assign(target, ...objects)
+
+copy the values of all enumerable own properties from one or more source objects to a target object
+
+## Define custom mutating actions
 
 ```js
 import { define, $set } from "immhelper";
