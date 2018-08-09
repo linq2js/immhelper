@@ -39,7 +39,9 @@ describe("samples", function () {
         two: 2,
         three: 3
       },
-      removeByIndexes: [1, 2, 3, 4]
+      removeByIndexes: [1, 2, 3, 4],
+      batchProcessing: {},
+      pipeProcessing: 'hello'
     };
     var specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -72,7 +74,13 @@ describe("samples", function () {
       increaseProps: [[function (x) {
         return x + 1;
       }]],
-      removeByIndexes: ["removeAt", 3, 1]
+      removeByIndexes: ["removeAt", 3, 1],
+      batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]],
+      pipeProcessing: ['batch', function (x) {
+        return x.toUpperCase();
+      }, function (x) {
+        return x + ' WORLD!!!';
+      }]
     };
     var result = (0, _index.update)(original, specs);
 
@@ -112,7 +120,12 @@ describe("samples", function () {
         two: 3,
         three: 4
       },
-      removeByIndexes: [1, 3]
+      removeByIndexes: [1, 3],
+      batchProcessing: {
+        name: "Peter",
+        age: 20
+      },
+      pipeProcessing: 'HELLO WORLD!!!'
     });
   });
 

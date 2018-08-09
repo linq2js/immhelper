@@ -46,6 +46,8 @@
 
   var iassign = require("immutable-assign");
 
+  var immutabilityHelper = require("immutability-helper");
+
   var immhelper = require("./dist/index").default;
 
   var INITIAL_OBJECT = {
@@ -384,7 +386,7 @@
       return immhelper(obj, { [path.join(".")]: ["set", val] });
     },
     merge: function(obj1, obj2) {
-      return immhelper(obj1, ["merge", obj2]);
+      return immhelper(obj1, ["assign", obj2]);
     },
     initArr: function(array) {
       if (!array) {
@@ -408,6 +410,86 @@
     },
     setAtDeep: function(arr, idx1, idx2, val) {
       return immhelper(arr, { [idx1]: ["set", idx2, val] });
+    }
+  };
+
+  var _solImmutabilityHelper = {
+    init: function() {
+      var obj = _.cloneDeep(INITIAL_OBJECT);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    get: function(obj, key) {
+      return obj[key];
+    },
+    set: function(obj, key, val) {
+      return immutabilityHelper(obj, { [key]: { $set: val } });
+    },
+    getDeep: function(obj, key1, key2) {
+      return obj[key1][key2];
+    },
+    setDeep: function(obj, key1, key2, val) {
+      return immutabilityHelper(obj, {
+        [key1]: {
+          [key2]: { $set: val }
+        }
+      });
+    },
+    getIn: _getIn,
+    setIn: function(obj, path, val) {
+      path = path.slice().reverse();
+      const specs = path.reduce(
+        (spec, key) => {
+          return {
+            [key]: spec
+          };
+        },
+        {
+          $set: val
+        }
+      );
+
+      return immutabilityHelper(obj, specs);
+    },
+    merge: function(obj1, obj2) {
+      return immutabilityHelper(obj1, {
+        $merge: obj2
+      });
+    },
+    initArr: function(array) {
+      if (!array) {
+        array = INITIAL_ARRAY;
+      }
+
+      var obj = _.cloneDeep(array);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    getAt: function(arr, idx) {
+      return arr[idx];
+    },
+    setAt: function(arr, idx, val) {
+      return immutabilityHelper(arr, {
+        [idx]: {
+          $set: val
+        }
+      });
+    },
+    getAtDeep: function(arr, idx1, idx2) {
+      return arr[idx1][idx2];
+    },
+    setAtDeep: function(arr, idx1, idx2, val) {
+      return immutabilityHelper(arr, {
+        [idx1]: {
+          [idx2]: {
+            $set: val
+          }
+        }
+      });
     }
   };
 
@@ -817,14 +899,16 @@
   _allTests("Mutable", _solMutable);
   _allTests("Immutable (Object.assign)", _solObjectAssign);
   _allTests("Immutable (immutable-assign)", _solIassign);
-  _allTests("Immutable (immhelper)", _solImmhelper);
-  _allTests("Immutable (immutable.js)", _solImmutableJs);
+  _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
+  //_allTests("Immutable (immutable.js)", _solImmutableJs);
   // _allTests("Immutable (timm)", _solImmutableTimm);
   _allTests("Immutable (seamless-immutable production)", _solImmutableSeamless);
+  _allTests("Immutable (immhelper)", _solImmhelper);
 
   // Deep freeze initial object/array
   _isDevel = true;
   _allTests("Immutable (Object.assign) + deep freeze", _solObjectAssign);
   _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
+  _allTests("Immutable (immutability-helper) + deep freeze", _solImmutabilityHelper);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
 }.call(this));

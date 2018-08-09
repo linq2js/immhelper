@@ -48,7 +48,9 @@ describe("samples", function() {
         two: 2,
         three: 3
       },
-      removeByIndexes: [1, 2, 3, 4]
+      removeByIndexes: [1, 2, 3, 4],
+      batchProcessing: {},
+      pipeProcessing: 'hello'
     };
     const specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -76,7 +78,9 @@ describe("samples", function() {
       swapItems: ["swap", 0, 1],
       // using sub spec to update all obj values
       increaseProps: [[x => x + 1]],
-      removeByIndexes: ["removeAt", 3, 1]
+      removeByIndexes: ["removeAt", 3, 1],
+      batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]],
+      pipeProcessing: ['batch', x => x.toUpperCase(), x => x + ' WORLD!!!']
     };
     const result = update(original, specs);
 
@@ -116,7 +120,12 @@ describe("samples", function() {
         two: 3,
         three: 4
       },
-      removeByIndexes: [1, 3]
+      removeByIndexes: [1, 3],
+      batchProcessing: {
+        name: "Peter",
+        age: 20
+      },
+      pipeProcessing: 'HELLO WORLD!!!'
     });
   });
 

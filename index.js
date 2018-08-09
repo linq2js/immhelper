@@ -35,6 +35,18 @@ class Immutable {
         throw new Error(`No action '${modifier}'' defined`);
       }
     }
+
+    // is batch processing
+    if (modifier === $batch) {
+      for (let job of args) {
+        if (job instanceof Function) {
+          job = [job];
+        }
+        this.apply.apply(this, job);
+      }
+      return this;
+    }
+
     const newValue = modifier.apply(null, [this.value].concat(args));
     if (newValue !== this.value) {
       this.value = newValue;
@@ -44,17 +56,23 @@ class Immutable {
   }
 
   change() {
-    if (!this.changed) {
-      this.changed = true;
-      this.value = clone(this.value);
-    }
-
-    for (let x of this.children) {
-      this.value[x.path] = x.value;
-    }
-
+    // notify to parent that child value is changed
     if (this.parent) {
       this.parent.change();
+    }
+
+    // if this is parent, we must clone its value
+    if (!this.changed && this.children.length) {
+      this.changed = true;
+      this.value = clone(this.value);
+      for (let x of this.children) {
+        this.value[x.path] = x.value;
+      }
+    }
+
+    // update parent model
+    if (this.parent) {
+      this.parent.value[this.path] = this.value;
     }
   }
 
@@ -303,6 +321,11 @@ function traversal(parent, node) {
   }
 }
 
+// a token to determine batch actions
+export function $batch() {
+  // do nothing
+}
+
 export const update = (state, changes) => {
   const root = new Immutable(state);
 
@@ -336,6 +359,8 @@ export function updatePath(state, ...specs) {
 export default update;
 
 export const actions = {
+  $batch,
+  batch: $batch,
   "=": $set,
   $assign,
   assign: $assign,

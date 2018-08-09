@@ -1,0 +1,157 @@
+C:\Users\linq2js\AppData\Local\JetBrains\Toolbox\apps\WebStorm\ch-0\181.5087.27\bin\runnerw.exe "C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js" run benchmarks --scripts-prepend-node-path=auto
+
+> immhelper@1.0.15 benchmarks D:\Projects\immapi
+> node benchmarks
+
+
+Mutable
+  Verification: P-FPFP-PP-FPFFP-PP-FPPPPP-FFPFP-PFFF-FFPP-FFPP
+  Object: read (x500000): 13 ms
+  Object: write (x100000): 4 ms
+  Object: deep read (x500000): 7 ms
+  Object: deep write (x100000): 3 ms
+  Object: very deep read (x500000): 43 ms
+  Object: very deep write (x100000): 14 ms
+  Object: merge (x100000): 20 ms
+  Array: read (x500000): 7 ms
+  Array: write (x100000): 5 ms
+  Array: deep read (x500000): 7 ms
+  Array: deep write (x100000): 7 ms
+Total elapsed = 77 ms (read) + 53 ms (write) = 130 ms.
+
+Immutable (Object.assign)
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 19 ms
+  Object: write (x100000): 147 ms
+  Object: deep read (x500000): 18 ms
+  Object: deep write (x100000): 226 ms
+  Object: very deep read (x500000): 38 ms
+  Object: very deep write (x100000): 296 ms
+  Object: merge (x100000): 146 ms
+  Array: read (x500000): 13 ms
+  Array: write (x100000): 740 ms
+  Array: deep read (x500000): 12 ms
+  Array: deep write (x100000): 727 ms
+Total elapsed = 100 ms (read) + 2282 ms (write) = 2382 ms.
+
+Immutable (immutable-assign)
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 14 ms
+  Object: write (x100000): 55 ms
+  Object: deep read (x500000): 9 ms
+  Object: deep write (x100000): 273 ms
+  Object: very deep read (x500000): 35 ms
+  Object: very deep write (x100000): 629 ms
+  Object: merge (x100000): 47 ms
+  Array: read (x500000): 8 ms
+  Array: write (x100000): 725 ms
+  Array: deep read (x500000): 8 ms
+  Array: deep write (x100000): 1929 ms
+Total elapsed = 74 ms (read) + 3658 ms (write) = 3732 ms.
+
+Immutable (immutability-helper)
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 15 ms
+  Object: write (x100000): 511 ms
+  Object: deep read (x500000): 8 ms
+  Object: deep write (x100000): 708 ms
+  Object: very deep read (x500000): 40 ms
+  Object: very deep write (x100000): 1435 ms
+  Object: merge (x100000): 349 ms
+  Array: read (x500000): 8 ms
+  Array: write (x100000): 29922 ms
+  Array: deep read (x500000): 12 ms
+  Array: deep write (x100000): 30617 ms
+Total elapsed = 83 ms (read) + 63542 ms (write) = 63625 ms.
+
+Immutable (seamless-immutable production)
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 15 ms
+  Object: write (x100000): 579 ms
+  Object: deep read (x500000): 8 ms
+  Object: deep write (x100000): 1156 ms
+  Object: very deep read (x500000): 47 ms
+  Object: very deep write (x100000): 2660 ms
+  Object: merge (x100000): 767 ms
+  Array: read (x500000): 8 ms
+  Array: write (x100000): 23501 ms
+  Array: deep read (x500000): 8 ms
+  Array: deep write (x100000): 25361 ms
+Total elapsed = 86 ms (read) + 54024 ms (write) = 54110 ms.
+
+Immutable (immhelper)
+  Verification: P-PPPP-FP-PPPPP-FP-PPPPFF-PPPPP-PPPP-PPPF-PPPF
+  Object: read (x500000): 14 ms
+  Object: write (x100000): 187 ms
+  Object: deep read (x500000): 8 ms
+  Object: deep write (x100000): 421 ms
+  Object: very deep read (x500000): 38 ms
+  Object: very deep write (x100000): 610 ms
+  Object: merge (x100000): 242 ms
+  Array: read (x500000): 9 ms
+  Array: write (x100000): 805 ms
+  Array: deep read (x500000): 8 ms
+  Array: deep write (x100000): 987 ms
+Total elapsed = 77 ms (read) + 3252 ms (write) = 3329 ms.
+
+Immutable (Object.assign) + deep freeze
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 15 ms
+  Object: write (x100000): 235 ms
+  Object: deep read (x500000): 19 ms
+  Object: deep write (x100000): 417 ms
+  Object: very deep read (x500000): 34 ms
+  Object: very deep write (x100000): 700 ms
+  Object: merge (x100000): 267 ms
+  Array: read (x500000): 14 ms
+  Array: write (x100000): 13101 ms
+  Array: deep read (x500000): 18 ms
+  Array: deep write (x100000): 13587 ms
+Total elapsed = 100 ms (read) + 28307 ms (write) = 28407 ms.
+
+Immutable (immutable-assign) + deep freeze
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 13 ms
+  Object: write (x100000): 56 ms
+  Object: deep read (x500000): 18 ms
+  Object: deep write (x100000): 268 ms
+  Object: very deep read (x500000): 34 ms
+  Object: very deep write (x100000): 661 ms
+  Object: merge (x100000): 52 ms
+  Array: read (x500000): 12 ms
+  Array: write (x100000): 13494 ms
+  Array: deep read (x500000): 18 ms
+  Array: deep write (x100000): 27989 ms
+Total elapsed = 95 ms (read) + 42520 ms (write) = 42615 ms.
+
+Immutable (immutability-helper) + deep freeze
+  Verification: P-PPPP-PP-PPPPP-PP-PPPPPP-PPPPP-PPPP-PPPP-PPPP
+  Object: read (x500000): 12 ms
+  Object: write (x100000): 598 ms
+  Object: deep read (x500000): 24 ms
+  Object: deep write (x100000): 922 ms
+  Object: very deep read (x500000): 37 ms
+  Object: very deep write (x100000): 1708 ms
+  Object: merge (x100000): 457 ms
+  Array: read (x500000): 12 ms
+  Array: write (x100000): 46770 ms
+  Array: deep read (x500000): 18 ms
+  Array: deep write (x100000): 45141 ms
+Total elapsed = 103 ms (read) + 95596 ms (write) = 95699 ms.
+
+Immutable (immhelper) + deep freeze
+  Verification: P-PPPP-FP-PPPPP-FP-PPPPFF-PPPPP-PPPP-PPPF-PPPF
+  Object: read (x500000): 12 ms
+  Object: write (x100000): 321 ms
+  Object: deep read (x500000): 19 ms
+  Object: deep write (x100000): 608 ms
+  Object: very deep read (x500000): 38 ms
+  Object: very deep write (x100000): 1004 ms
+  Object: merge (x100000): 337 ms
+  Array: read (x500000): 12 ms
+  Array: write (x100000): 14301 ms
+  Array: deep read (x500000): 18 ms
+  Array: deep write (x100000): 14332 ms
+Total elapsed = 99 ms (read) + 30903 ms (write) = 31002 ms.
+
+Process finished with exit code 0

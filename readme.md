@@ -1,12 +1,38 @@
 # immhelper
+===
 
-Lightweight library helps you to update js objects without mutating them
+[![NPM version][npm-image]][npm-url]
+[![Build status][travis-image]][travis-url]
+[![Test coverage][coveralls-image]][coveralls-url]
+[![Downloads][downloads-image]][downloads-url]
+
+Fast and lightweight library helps you to update js objects without mutating them
 
 ## Install with npm
 
 ```
 npm install immhelper --save
 ```
+
+## Benchmarks (Fastest to Slowest)
+### Normal
+**Object.assign**: Total elapsed = 100 ms (read) + 2282 ms (write) = 2382 ms<br/>
+**immhelper**: Total elapsed = 77 ms (read) + 3252 ms (write) = 3329 ms<br/>
+**immutable-assign**: Total elapsed = 74 ms (read) + 3658 ms (write) = 3732 ms<br/>
+**seamless-immutable**: Total elapsed = 86 ms (read) + 54024 ms (write) = 54110 ms<br/>
+**immutability-helper**: Total elapsed = 83 ms (read) + 63542 ms (write) = 63625 ms<br/>
+
+### With Deep Freeze
+**Object.assign**: Total elapsed = 100 ms (read) + 28307 ms (write) = 28407 ms<br/>
+**immhelper**: Total elapsed = 99 ms (read) + 30903 ms (write) = 31002 ms<br/>
+**immutable-assign**: Total elapsed = 95 ms (read) + 42520 ms (write) = 42615 ms<br/>
+**immutability-helper**: Total elapsed = 103 ms (read) + 95596 ms (write) = 95699 ms<br/>
+
+### Summary
+1.3x Slower than Object.assign<br/>
+1.1x Faster than immutable-assign<br/>
+16x Faster than seamless-immutable<br/>
+19x Faster than immutability-helper<br/>
 
 ## Samples
 
@@ -52,7 +78,14 @@ const original = {
   },
   sqrt: 100,
   doubleItems: [1, 2, 3, 4, 5, 6, 7, 8],
-  swapItems: ["left", "right"]
+  swapItems: ["left", "right"],
+  increaseProps: {
+    one: 1,
+    two: 2,
+    three: 3
+  },
+  removeByIndexes: [1, 2, 3, 4],
+  batchProcessing: {}
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -79,7 +112,9 @@ const specs = {
   // use action name instead of function
   swapItems: ["swap", 0, 1],
   // using sub spec to update all obj values
-  increaseProps: [[x => x + 1]]
+  increaseProps: [[x => x + 1]],
+  removeByIndexes: ["removeAt", 3, 1],
+  batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]]
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -112,7 +147,17 @@ expect(result).toEqual({
   removeSecond: [1, 3, 4],
   removeAppleAndBanana: ["Orange"],
   doubleItems: [2, 4, 6, 8, 10, 12, 14, 16],
-  swapItems: ["right", "left"]
+  swapItems: ["right", "left"],
+  increaseProps: {
+    one: 2,
+    two: 3,
+    three: 4
+  },
+  removeByIndexes: [1, 3],
+  batchProcessing: {
+    name: "Peter",
+    age: 20
+  }
 });
 ```
 
