@@ -47,7 +47,13 @@ class Immutable {
       return this;
     }
 
-    const newValue = modifier.apply(null, [this.value].concat(args));
+    let newValue = modifier.apply(null, [this.value].concat(args));
+
+    // need special context
+    if (newValue instanceof Function) {
+      newValue = newValue(this);
+    }
+
     if (newValue !== this.value) {
       this.value = newValue;
       this.change(true);
@@ -67,12 +73,14 @@ class Immutable {
         this.changed = true;
         this.value = clone(this.value);
         for (let x of this.children) {
-          this.value[x.path] = x.value;
+          if (x.parent === this) {
+            this.value[x.path] = x.value;
+          }
         }
       } else if (valueUpdated) {
         const newChildren = [];
         for (let x of this.children) {
-          if (x.path in this.value) {
+          if (x.parent === this && x.path in this.value) {
             x.value = this.value[x.path];
             newChildren.push(x);
           } else {
@@ -130,6 +138,27 @@ export function $toggle(current) {
 
 export function $unset(current) {
   const props = arraySlice.call(arguments, 1);
+  // no prop to unset => unset its self
+  if (!props.length) {
+    return function(node) {
+      const parent = node.parent;
+      if (!parent) {
+        return current;
+      }
+
+      if (node.path in parent.value) {
+        if (!parent.changed) {
+          parent.value = clone(parent.value);
+        }
+        delete parent.value[node.path];
+        delete node.parent;
+        parent.change(true);
+      } else {
+        // not exist in parent value
+      }
+    };
+  }
+
   if (!current) return;
   let newValue = current;
   props.forEach(prop => {

@@ -102,6 +102,12 @@ var Immutable = function () {
       }
 
       var newValue = modifier.apply(null, [this.value].concat(args));
+
+      // need special context
+      if (newValue instanceof Function) {
+        newValue = newValue(this);
+      }
+
       if (newValue !== this.value) {
         this.value = newValue;
         this.change(true);
@@ -129,7 +135,9 @@ var Immutable = function () {
             for (var _iterator2 = this.children[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
               var x = _step2.value;
 
-              this.value[x.path] = x.value;
+              if (x.parent === this) {
+                this.value[x.path] = x.value;
+              }
             }
           } catch (err) {
             _didIteratorError2 = true;
@@ -155,7 +163,7 @@ var Immutable = function () {
             for (var _iterator3 = this.children[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
               var _x = _step3.value;
 
-              if (_x.path in this.value) {
+              if (_x.parent === this && _x.path in this.value) {
                 _x.value = this.value[_x.path];
                 newChildren.push(_x);
               } else {
@@ -259,6 +267,27 @@ function $toggle(current) {
 
 function $unset(current) {
   var props = arraySlice.call(arguments, 1);
+  // no prop to unset => unset its self
+  if (!props.length) {
+    return function (node) {
+      var parent = node.parent;
+      if (!parent) {
+        return current;
+      }
+
+      if (node.path in parent.value) {
+        if (!parent.changed) {
+          parent.value = clone(parent.value);
+        }
+        delete parent.value[node.path];
+        delete node.parent;
+        parent.change(true);
+      } else {
+        // not exist in parent value
+      }
+    };
+  }
+
   if (!current) return;
   var newValue = current;
   props.forEach(function (prop) {

@@ -20,9 +20,26 @@ Fast and lightweight library helps you to update js objects without mutating the
 npm install immhelper --save
 ```
 
+## Features
+1. Extreme fast
+1. Lightweight
+1. Provide many powerful mutating actions
+1. Easy to define custom mutating actions
+1. Support batch processing per spec
+1. Support pipe processing per spec
+1. Support deep updating with target path
+1. Support sub spec with filter
+1. Support named mutating actions
+1. Support typescripts autocomplete
+1. Support proxy for selecting and updating target
+1. Support API to update spec for special cases
+
 ## Benchmarks (Fastest to Slowest)
+
 [Show details](benchmarks-result-03.txt)
+
 ### Normal
+
 **Object.assign**: Total elapsed = 107 ms (read) + 2578 ms (write) = 2685 ms<br/>
 **immhelper**: Total elapsed = 74 ms (read) + 3283 ms (write) = 3357 ms<br/>
 **immutable-assign**: Total elapsed = 88 ms (read) + 3970 ms (write) = 4058 ms<br/>
@@ -31,6 +48,7 @@ npm install immhelper --save
 **immutability-helper**: Total elapsed = 80 ms (read) + 64408 ms (write) = 64488 ms<br/>
 
 ### With Deep Freeze
+
 **Object.assign**: Total elapsed = 99 ms (read) + 28683 ms (write) = 28782 ms<br/>
 **immhelper**: Total elapsed = 93 ms (read) + 29871 ms (write) = 29964 ms<br/>
 **immer**: Total elapsed = 100 ms (read) + 36421 ms (write) = 36521 ms<br/>
@@ -38,6 +56,7 @@ npm install immhelper --save
 **immutability-helper**: Total elapsed = 98 ms (read) + 95230 ms (write) = 95328 ms<br/>
 
 ### Summary
+
 1.3x Slower than Object.assign<br/>
 1.1x Faster than immutable-assign<br/>
 2x Faster than immer<br/>
@@ -96,7 +115,11 @@ const original = {
   },
   removeByIndexes: [1, 2, 3, 4],
   batchProcessing: {},
-  pipeProcessing: 'hello'
+  pipeProcessing: "hello",
+  doubleOddNumbers: [1, 2, 3, 4],
+  parentNode: {
+    childNode: {}
+  }
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -126,7 +149,13 @@ const specs = {
   increaseProps: [[x => x + 1]],
   removeByIndexes: ["removeAt", 3, 1],
   batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]],
-  pipeProcessing: ['batch', x => x.toUpperCase(), x => x + ' WORLD!!!']
+  pipeProcessing: ["batch", x => x.toUpperCase(), x => x + " WORLD!!!"],
+  //  apply sub spec for only odd numbers
+  doubleOddNumbers: [[x => x * 2], x => x % 2],
+  parentNode: {
+    // remove childNode its self from parentNode
+    childNode: ["unset"]
+  }
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -170,13 +199,16 @@ expect(result).toEqual({
     name: "Peter",
     age: 20
   },
-  pipeProcessing: 'HELLO WORLD!!!'
+  pipeProcessing: "HELLO WORLD!!!",
+  doubleOddNumbers: [2, 2, 6, 4],
+  parentNode: {}
 });
 ```
 
 ## Typescript support
 
 ### immhelper.d.ts
+
 ```typescript
 declare namespace ImmHelper {
     // tuple [selector, action, ...args]
@@ -193,6 +225,7 @@ export = updatePath;
 ```
 
 ### Usages
+
 ```typescript
 /// <reference path="./immhelper.d.ts"/>
 import { updatePath, $push, $set } from "immhelper";
