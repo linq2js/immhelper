@@ -32,6 +32,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   var immhelper = require("./dist/index").default;
 
+  var immer = require("immer").default;
+
   var INITIAL_OBJECT = {
     toggle: false,
     b: 3,
@@ -315,6 +317,73 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       }, {
         idx1: idx1,
         idx2: idx2
+      });
+    }
+  };
+
+  var _solImmer = {
+    init: function init() {
+      var obj = _.cloneDeep(INITIAL_OBJECT);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    get: function get(obj, key) {
+      return obj[key];
+    },
+    set: function set(obj, key, val) {
+      return immer(obj, function (x) {
+        x[key] = val;
+      });
+    },
+    getDeep: function getDeep(obj, key1, key2) {
+      return obj[key1][key2];
+    },
+    setDeep: function setDeep(obj, key1, key2, val) {
+      return immer(obj, function (x) {
+        x[key1][key2] = val;
+      });
+    },
+    getIn: _getIn,
+    setIn: function setIn(obj, path, val) {
+      return immer(obj, function (x) {
+        x = path.slice(0, path.length - 1).reduce(function (x, path) {
+          return x[path];
+        }, x);
+        x[path[path.length - 1]] = val;
+      });
+    },
+    merge: function merge(obj1, obj2) {
+      return immer(obj1, function (x) {
+        Object.assign(x, obj2);
+      });
+    },
+    initArr: function initArr(array) {
+      if (!array) {
+        array = INITIAL_ARRAY;
+      }
+
+      var obj = _.cloneDeep(array);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    getAt: function getAt(arr, idx) {
+      return arr[idx];
+    },
+    setAt: function setAt(arr, idx, val) {
+      return immer(arr, function (x) {
+        x[idx] = val;
+      });
+    },
+    getAtDeep: function getAtDeep(arr, idx1, idx2) {
+      return arr[idx1][idx2];
+    },
+    setAtDeep: function setAtDeep(arr, idx1, idx2, val) {
+      return immer(arr, function (x) {
+        x[idx1][idx2] = val;
       });
     }
   };
@@ -767,6 +836,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   //_allTests("Immutable (immutable.js)", _solImmutableJs);
   // _allTests("Immutable (timm)", _solImmutableTimm);
   _allTests("Immutable (seamless-immutable production)", _solImmutableSeamless);
+  _allTests("Immutable (immer)", _solImmer);
   _allTests("Immutable (immhelper)", _solImmhelper);
 
   // Deep freeze initial object/array
@@ -774,6 +844,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   _allTests("Immutable (Object.assign) + deep freeze", _solObjectAssign);
   _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
   _allTests("Immutable (immutability-helper) + deep freeze", _solImmutabilityHelper);
+  _allTests("Immutable (immer) + deep freeze", _solImmer);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
 }).call(undefined);
 //# sourceMappingURL=benchmarks.js.map

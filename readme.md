@@ -9,23 +9,26 @@ npm install immhelper --save
 ```
 
 ## Benchmarks (Fastest to Slowest)
-[Show details](benchmarks-result-02.txt)
+[Show details](benchmarks-result-03.txt)
 ### Normal
-**Object.assign**: Total elapsed = 100 ms (read) + 2282 ms (write) = 2382 ms<br/>
-**immhelper**: Total elapsed = 77 ms (read) + 3252 ms (write) = 3329 ms<br/>
-**immutable-assign**: Total elapsed = 74 ms (read) + 3658 ms (write) = 3732 ms<br/>
-**seamless-immutable**: Total elapsed = 86 ms (read) + 54024 ms (write) = 54110 ms<br/>
-**immutability-helper**: Total elapsed = 83 ms (read) + 63542 ms (write) = 63625 ms<br/>
+**Object.assign**: Total elapsed = 107 ms (read) + 2578 ms (write) = 2685 ms<br/>
+**immhelper**: Total elapsed = 74 ms (read) + 3283 ms (write) = 3357 ms<br/>
+**immutable-assign**: Total elapsed = 88 ms (read) + 3970 ms (write) = 4058 ms<br/>
+**immer**: Total elapsed = 71 ms (read) + 6883 ms (write) = 6954 ms<br/>
+**seamless-immutable**: Total elapsed = 88 ms (read) + 50166 ms (write) = 50254 ms<br/>
+**immutability-helper**: Total elapsed = 80 ms (read) + 64408 ms (write) = 64488 ms<br/>
 
 ### With Deep Freeze
-**Object.assign**: Total elapsed = 100 ms (read) + 28307 ms (write) = 28407 ms<br/>
-**immhelper**: Total elapsed = 99 ms (read) + 30903 ms (write) = 31002 ms<br/>
-**immutable-assign**: Total elapsed = 95 ms (read) + 42520 ms (write) = 42615 ms<br/>
-**immutability-helper**: Total elapsed = 103 ms (read) + 95596 ms (write) = 95699 ms<br/>
+**Object.assign**: Total elapsed = 99 ms (read) + 28683 ms (write) = 28782 ms<br/>
+**immhelper**: Total elapsed = 93 ms (read) + 29871 ms (write) = 29964 ms<br/>
+**immer**: Total elapsed = 100 ms (read) + 36421 ms (write) = 36521 ms<br/>
+**immutable-assign**: Total elapsed = 98 ms (read) + 43356 ms (write) = 43454 ms<br/>
+**immutability-helper**: Total elapsed = 98 ms (read) + 95230 ms (write) = 95328 ms<br/>
 
 ### Summary
 1.3x Slower than Object.assign<br/>
 1.1x Faster than immutable-assign<br/>
+2x Faster than immer<br/>
 16x Faster than seamless-immutable<br/>
 19x Faster than immutability-helper<br/>
 

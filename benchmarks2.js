@@ -50,6 +50,8 @@
 
   var immutabilityHelper = require("immutability-helper");
 
+  var immer = require("immer").default;
+
   var INITIAL_OBJECT = {
     toggle: false,
     b: 3,
@@ -356,6 +358,71 @@
           idx2: idx2
         }
       );
+    }
+  };
+
+  var _solImmer = {
+    init: function() {
+      var obj = _.cloneDeep(INITIAL_OBJECT);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    get: function(obj, key) {
+      return obj[key];
+    },
+    set: function(obj, key, val) {
+      return immer(obj, x => {
+        x[key] = val;
+      });
+    },
+    getDeep: function(obj, key1, key2) {
+      return obj[key1][key2];
+    },
+    setDeep: function(obj, key1, key2, val) {
+      return immer(obj, x => {
+        x[key1][key2] = val;
+      });
+    },
+    getIn: _getIn,
+    setIn: function(obj, path, val) {
+      return immer(obj, x => {
+        x = path.slice(0, path.length - 1).reduce((x, path) => x[path], x);
+        x[path[path.length - 1]] = val;
+      });
+    },
+    merge: function(obj1, obj2) {
+      return immer(obj1, x => {
+        Object.assign(x, obj2);
+      });
+    },
+    initArr: function(array) {
+      if (!array) {
+        array = INITIAL_ARRAY;
+      }
+
+      var obj = _.cloneDeep(array);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    getAt: function(arr, idx) {
+      return arr[idx];
+    },
+    setAt: function(arr, idx, val) {
+      return immer(arr, x => {
+        x[idx] = val;
+      });
+    },
+    getAtDeep: function(arr, idx1, idx2) {
+      return arr[idx1][idx2];
+    },
+    setAtDeep: function(arr, idx1, idx2, val) {
+      return immer(arr, x => {
+        x[idx1][idx2] = val;
+      });
     }
   };
 
@@ -898,6 +965,7 @@
 
   //_allTests("Mutable", _solMutable);
   //_allTests("Immutable (Object.assign)", _solObjectAssign);
+  _allTests("Immutable (immer)", _solImmer);
   _allTests("Immutable (immutable-assign)", _solIassign);
   _allTests("Immutable (immhelper)", _solImmhelper);
   _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
@@ -908,6 +976,7 @@
   // Deep freeze initial object/array
   _isDevel = true;
   //_allTests("Immutable (Object.assign) + deep freeze", _solObjectAssign);
+  _allTests("Immutable (immer) + deep freeze", _solImmer);
   _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
   _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
