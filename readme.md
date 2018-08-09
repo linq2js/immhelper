@@ -164,45 +164,45 @@ console.log(newState1, newState2);
 
 ## Mutating actions
 
-### [$push, ...items] / ['push', ...items] / actions.push(target, ...items) / actions.$push(target, ...items)
+### [$push, ...items]<br/>['push', ...items]<br/>actions.push(target, ...items)<br/>actions.$push(target, ...items)
 
 push() all the items in array on the target
 
-### [$pop] / ['pop'] / actions.pop(target) / actions.$pop(target)
+### [$pop]<br/>['pop']<br/>actions.pop(target)<br/>actions.$pop(target)
 
-### [$unshift, ...items] / ['unshift', ...items] / actions.unshift(target, ...items) / actions.$unshift(target, ...items)
+### [$unshift, ...items]<br/>['unshift', ...items]<br/>actions.unshift(target, ...items)<br/>actions.$unshift(target, ...items)
 
 unshift() all the items in array on the target.
 
-### [$splice, index, count, ...items] / ['splice', index, count, ...items] / actions.splice(target, index, count, ...items) / actions.$splice(target, index, count, ...items)
+### [$splice, index, count, ...items]<br/>['splice', index, count, ...items]<br/>actions.splice(target, index, count, ...items)<br/>actions.$splice(target, index, count, ...items)
 
 splice() remove item at specified index and push new items at there.
 
-### [$remove, ...items] / ['remove', ...items] / actions.remove(target, ...items) / actions.$remove(target, ...items)
+### [$remove, ...items]<br/>['remove', ...items]<br/>actions.remove(target, ...items)<br/>actions.$remove(target, ...items)
 
 remove specified items from target array
 
-### [$set, value] / ['set', value] / actions.set(target, value) / actions.$pop(target, value)
+### [$set, value]<br/>['set', value]<br/>actions.set(target, value)<br/>actions.$pop(target, value)
 
 replace the target entirely.
 
-### [$set, prop, value] / ['set', prop, value] / actions.set(target, prop, value) / actions.$set(target, prop, value)
+### [$set, prop, value]<br/>['set', prop, value]<br/>actions.set(target, prop, value)<br/>actions.$set(target, prop, value)
 
 set value for specified prop of the target
 
-### [$toggle] / ['toggle'] / actions.toggle(target) / actions.$toggle(target)
+### [$toggle]<br/>['toggle']<br/>actions.toggle(target)<br/>actions.$toggle(target)
 
 toggle target's value.
 
-### [$toggle, ...props] / ['toggle', ...props] / actions.toggle(target, ...props) / actions.$toggle(target, ...props)
+### [$toggle, ...props]<br/>['toggle', ...props]<br/>actions.toggle(target, ...props)<br/>actions.$toggle(target, ...props)
 
 toggle all prop values of the target
 
-### [$unset, ...props] / ['unset', ...props] / actions.unset(target, ...props) / actions.$unset(target, ...props)
+### [$unset, ...props]<br/>['unset', ...props]<br/>actions.unset(target, ...props)<br/>actions.$unset(target, ...props)
 
 remove keys from the target object or set undefined for array indexes
 
-### [$assign, ...objects] / ['assign' ...objects] / actions.assign(target ...objects) / actions.$assign(target, ...objects)
+### [$assign, ...objects]<br/>['assign' ...objects]<br/>actions.assign(target ...objects)<br/>actions.$assign(target, ...objects)
 
 copy the values of all enumerable own properties from one or more source objects to a target object
 
