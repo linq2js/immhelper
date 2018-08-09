@@ -50,23 +50,38 @@ class Immutable {
     const newValue = modifier.apply(null, [this.value].concat(args));
     if (newValue !== this.value) {
       this.value = newValue;
-      this.change();
+      this.change(true);
     }
     return this;
   }
 
-  change() {
+  change(valueUpdated) {
     // notify to parent that child value is changed
     if (this.parent) {
       this.parent.change();
     }
 
-    // if this is parent, we must clone its value
-    if (!this.changed && this.children.length) {
-      this.changed = true;
-      this.value = clone(this.value);
-      for (let x of this.children) {
-        this.value[x.path] = x.value;
+    if (this.children.length) {
+      // if this is parent, we must clone its value
+      if (!this.changed) {
+        this.changed = true;
+        this.value = clone(this.value);
+        for (let x of this.children) {
+          this.value[x.path] = x.value;
+        }
+      } else if (valueUpdated) {
+        const newChildren = [];
+        for (let x of this.children) {
+          if (x.path in this.value) {
+            x.value = this.value[x.path];
+            newChildren.push(x);
+          } else {
+            // child is removed, so we detach the child
+            delete x.parent;
+            delete this.childMap[x.path];
+          }
+        }
+        this.children = newChildren;
       }
     }
 
@@ -279,6 +294,7 @@ export function $set(current) {
   // don't use destructing to improve performance
   const prop = args[0];
   const value = args[1];
+  if (current[prop] === value) return current;
   const newValue = clone(current);
   newValue[prop] = value;
   return newValue;

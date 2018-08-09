@@ -737,6 +737,8 @@
 
     results.push("-"); // 2
     obj2 = set(obj, "str", "foo");
+    //console.log(JSON.stringify(obj2));
+    //console.log(JSON.stringify(obj));
     _addResult(results, obj2 === obj);
     _addResult(results, get(obj2, "d") === get(obj, "d"));
 
@@ -965,10 +967,10 @@
 
   //_allTests("Mutable", _solMutable);
   //_allTests("Immutable (Object.assign)", _solObjectAssign);
-  _allTests("Immutable (immer)", _solImmer);
-  _allTests("Immutable (immutable-assign)", _solIassign);
+  // _allTests("Immutable (immer)", _solImmer);
+  // _allTests("Immutable (immutable-assign)", _solIassign);
   _allTests("Immutable (immhelper)", _solImmhelper);
-  _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
+  // _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
   ///_allTests("Immutable (immutable.js)", _solImmutableJs);
   // _allTests("Immutable (timm)", _solImmutableTimm);
   //_allTests("Immutable (seamless-immutable production)", _solImmutableSeamless);
@@ -976,8 +978,8 @@
   // Deep freeze initial object/array
   _isDevel = true;
   //_allTests("Immutable (Object.assign) + deep freeze", _solObjectAssign);
-  _allTests("Immutable (immer) + deep freeze", _solImmer);
-  _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
+  // _allTests("Immutable (immer) + deep freeze", _solImmer);
+  // _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
-  _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
+  // _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
 }.call(this));
