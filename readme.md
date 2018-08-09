@@ -1,11 +1,6 @@
 # immhelper
 ===
 
-[![NPM version][npm-image]][npm-url]
-[![Build status][travis-image]][travis-url]
-[![Test coverage][coveralls-image]][coveralls-url]
-[![Downloads][downloads-image]][downloads-url]
-
 Fast and lightweight library helps you to update js objects without mutating them
 
 ## Install with npm
@@ -15,6 +10,7 @@ npm install immhelper --save
 ```
 
 ## Benchmarks (Fastest to Slowest)
+[Show details](benchmarks-result-02.txt)
 ### Normal
 **Object.assign**: Total elapsed = 100 ms (read) + 2282 ms (write) = 2382 ms<br/>
 **immhelper**: Total elapsed = 77 ms (read) + 3252 ms (write) = 3329 ms<br/>
