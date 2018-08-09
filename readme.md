@@ -176,6 +176,7 @@ expect(result).toEqual({
 
 ## Typescript support
 
+### immhelper.d.ts
 ```typescript
 declare namespace ImmHelper {
     // tuple [selector, action, ...args]
@@ -191,8 +192,7 @@ declare var updatePath: ImmHelper.Update;
 export = updatePath;
 ```
 
-## For Typescript fan
-
+### Usages
 ```typescript
 /// <reference path="./immhelper.d.ts"/>
 import { updatePath, $push, $set } from "immhelper";
