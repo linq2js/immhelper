@@ -1,5 +1,4 @@
 # immhelper
-===
 
 Fast and lightweight library helps you to update js objects without mutating them
 
@@ -81,7 +80,8 @@ const original = {
     three: 3
   },
   removeByIndexes: [1, 2, 3, 4],
-  batchProcessing: {}
+  batchProcessing: {},
+  pipeProcessing: 'hello'
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -110,7 +110,8 @@ const specs = {
   // using sub spec to update all obj values
   increaseProps: [[x => x + 1]],
   removeByIndexes: ["removeAt", 3, 1],
-  batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]]
+  batchProcessing: ["batch", ["set", "name", "Peter"], ["set", "age", 20]],
+  pipeProcessing: ['batch', x => x.toUpperCase(), x => x + ' WORLD!!!']
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -153,7 +154,8 @@ expect(result).toEqual({
   batchProcessing: {
     name: "Peter",
     age: 20
-  }
+  },
+  pipeProcessing: 'HELLO WORLD!!!'
 });
 ```
 
