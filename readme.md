@@ -1,9 +1,6 @@
 # immhelper
 
-<p align="center">
-  <a href="https://unpkg.com/immhelper/dist/index.js">
-    <img src="http://img.badgesize.io/https://unpkg.com/immhelper/dist/index.js?compression=gzip&amp;label=immhelper">
-  </a>
+<p>
   <a href="https://unpkg.com/immhelper/dist/index.js">
     <img src="http://img.badgesize.io/https://unpkg.com/immhelper/dist/index.js?compression=gzip&amp;label=immhelper">
   </a>
