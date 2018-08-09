@@ -1,5 +1,6 @@
 const configs = {
-  separator: '.'
+  // for fast performance, we process dot as separator only
+  separator: "."
 };
 
 const {
@@ -27,7 +28,7 @@ class Immutable {
 
   apply(modifier) {
     const args = arraySlice.call(arguments, 1);
-    if (typeof modifier === 'string') {
+    if (typeof modifier === "string") {
       if (modifier in actions) {
         modifier = actions[modifier];
       } else {
@@ -45,11 +46,7 @@ class Immutable {
   change() {
     if (!this.changed) {
       this.changed = true;
-      if (this.value instanceof Array) {
-        this.value = this.value.slice();
-      } else if (isPlainObject(this.value)) {
-        this.value = Object.assign({}, this.value);
-      }
+      this.value = clone(this.value);
     }
 
     for (let x of this.children) {
@@ -80,8 +77,8 @@ class Immutable {
 
   childFromPath(path) {
     return (path instanceof Array
-        ? path
-        : path.split(configs.separator)
+      ? path
+      : path.split(configs.separator)
     ).reduce((parent, path) => parent.child(path), this);
   }
 }
@@ -134,6 +131,24 @@ export function $splice(array, index, count) {
   return array;
 }
 
+export function $removeAt(array) {
+  const indexes = arraySlice.call(arguments, 1);
+  let newArray = array;
+  // remove from bottom to top
+  indexes.sort();
+  while (indexes.length) {
+    const index = indexes.pop();
+    if (index >= 0 && index < newArray.length) {
+      if (newArray === array) {
+        newArray = newArray.slice();
+      }
+      newArray.splice(index, 1);
+    }
+  }
+
+  return newArray;
+}
+
 export function $push(array) {
   const newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
@@ -169,12 +184,17 @@ export function $sort(array, sorter) {
 }
 
 function clone(value) {
-  if (value instanceof Array) return value.slice();
-  return Object.assign({}, value);
+  if (value instanceof Array) {
+    return value.slice();
+  }
+  if (value === null || value === undefined || isPlainObject(value)) {
+    return Object.assign({}, value);
+  }
+  return value;
 }
 
 const isPlainObject = val =>
-  !!val && typeof val === 'object' && val.constructor === Object;
+  !!val && typeof val === "object" && val.constructor === Object;
 
 export function $remove(array) {
   const items = arraySlice.call(arguments, 1);
@@ -214,7 +234,7 @@ export function $assign(obj) {
 function createSelectorProxy(context) {
   const proxy = new Proxy(x => undefined, {
     get(target, prop) {
-      if (prop === '__context__') return context;
+      if (prop === "__context__") return context;
       context = context.child(prop);
       return proxy;
     },
@@ -257,7 +277,7 @@ function traversal(parent, node) {
     const child = parent.childFromPath(key);
     if (value instanceof Array) {
       // is spec
-      if (value[0] instanceof Function || typeof value[0] === 'string') {
+      if (value[0] instanceof Function || typeof value[0] === "string") {
         // is modifier and its args
         child.apply.apply(child, value);
       } else {
@@ -316,7 +336,7 @@ export function updatePath(state, ...specs) {
 export default update;
 
 export const actions = {
-  '=': $set,
+  "=": $set,
   $assign,
   assign: $assign,
   $pop,
@@ -340,13 +360,29 @@ export const actions = {
   $unshift,
   unshift: $unshift,
   $swap,
-  swap: $swap
+  swap: $swap,
+  $removeAt,
+  removeAt: $removeAt
 };
 
-export function define(name, action) {
+function cloneIfPossible(callback) {
+  return function() {
+    arguments[0] = clone(arguments[0]);
+    return callback.apply(null, arguments);
+  };
+}
+
+export function define(name, action, disableAutoClone) {
+  // define(actionHash, disableAutoClone)
   if (isPlainObject(name)) {
-    Object.assign(actions, action);
+    disableAutoClone = action;
+    for (let pair of Object.entries(name)) {
+      actions[pair.key] = disableAutoClone
+        ? pair.value
+        : cloneIfPossible(pair.value);
+    }
   } else {
-    actions[name] = action;
+    // define(name, action, disableAutoClone)
+    actions[name] = disableAutoClone ? action : cloneIfPossible(action);
   }
 }

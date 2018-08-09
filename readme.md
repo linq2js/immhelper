@@ -182,6 +182,10 @@ splice() remove item at specified index and push new items at there.
 
 remove specified items from target array
 
+### [$removeAt, ...indexes]<br/>['removeAt', ...indexes]<br/>actions.removeAt(target, ...indexes)<br/>actions.$removeAt(target, ...indexes)
+
+remove items from array by indexes
+
 ### [$set, value]<br/>['set', value]<br/>actions.set(target, value)<br/>actions.$pop(target, value)
 
 replace the target entirely.
@@ -205,6 +209,45 @@ remove keys from the target object or set undefined for array indexes
 ### [$assign, ...objects]<br/>['assign' ...objects]<br/>actions.assign(target ...objects)<br/>actions.$assign(target, ...objects)
 
 copy the values of all enumerable own properties from one or more source objects to a target object
+
+### define(actionName, actionFunc, disableAutoClone)
+
+define new mutating action, if disableAutoClone = true, original value will be passed instead of cloned value.
+Set disableAutoClone = true if you want to handle value manually, return original value if no change needed.
+
+```js
+define("removeAt", function(originalArray, index) {
+  // nothing to remove
+  if (index >= originalArray.length) return originalArray;
+  const newArray = originalArray.slice();
+  newArray.splice(index, 1);
+  return newArray;
+}, true);
+```
+
+## Special use cases
+
+```js
+import { without, compact, zip } from "lodash";
+import { define, updatePath } from "immhelper";
+
+define({
+  "+"(current, value) {
+    return current + value;
+  },
+  "-"(current, value) {
+    return current - value;
+  },
+  without,
+  compact,
+  zip
+});
+
+const state = { counter: 0 };
+
+updatePath(state, [x => x.counter, "+", 1]);
+updatePath(state, [x => x.counter, "-", 1]);
+```
 
 ## Define custom mutating actions
 

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -12,6 +12,7 @@ exports.configure = configure;
 exports.$toggle = $toggle;
 exports.$unset = $unset;
 exports.$splice = $splice;
+exports.$removeAt = $removeAt;
 exports.$push = $push;
 exports.$unshift = $unshift;
 exports.$pop = $pop;
@@ -27,7 +28,8 @@ exports.define = define;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var configs = {
-  separator: '.'
+  // for fast performance, we process dot as separator only
+  separator: "."
 };
 
 var _Array$prototype = Array.prototype,
@@ -54,14 +56,14 @@ var Immutable = function () {
   }
 
   _createClass(Immutable, [{
-    key: 'apply',
+    key: "apply",
     value: function apply(modifier) {
       var args = arraySlice.call(arguments, 1);
-      if (typeof modifier === 'string') {
+      if (typeof modifier === "string") {
         if (modifier in actions) {
           modifier = actions[modifier];
         } else {
-          throw new Error('No action \'' + modifier + '\'\' defined');
+          throw new Error("No action '" + modifier + "'' defined");
         }
       }
       var newValue = modifier.apply(null, [this.value].concat(args));
@@ -72,15 +74,11 @@ var Immutable = function () {
       return this;
     }
   }, {
-    key: 'change',
+    key: "change",
     value: function change() {
       if (!this.changed) {
         this.changed = true;
-        if (this.value instanceof Array) {
-          this.value = this.value.slice();
-        } else if (isPlainObject(this.value)) {
-          this.value = Object.assign({}, this.value);
-        }
+        this.value = clone(this.value);
       }
 
       var _iteratorNormalCompletion = true;
@@ -113,7 +111,7 @@ var Immutable = function () {
       }
     }
   }, {
-    key: 'backToParent',
+    key: "backToParent",
     value: function backToParent() {
       var _this = this;
 
@@ -125,7 +123,7 @@ var Immutable = function () {
       return this.parent;
     }
   }, {
-    key: 'child',
+    key: "child",
     value: function child(path) {
       if (path in this.childMap) {
         return this.childMap[path];
@@ -136,7 +134,7 @@ var Immutable = function () {
       return child;
     }
   }, {
-    key: 'childFromPath',
+    key: "childFromPath",
     value: function childFromPath(path) {
       return (path instanceof Array ? path : path.split(configs.separator)).reduce(function (parent, path) {
         return parent.child(path);
@@ -217,6 +215,24 @@ function $splice(array, index, count) {
   return array;
 }
 
+function $removeAt(array) {
+  var indexes = arraySlice.call(arguments, 1);
+  var newArray = array;
+  // remove from bottom to top
+  indexes.sort();
+  while (indexes.length) {
+    var index = indexes.pop();
+    if (index >= 0 && index < newArray.length) {
+      if (newArray === array) {
+        newArray = newArray.slice();
+      }
+      newArray.splice(index, 1);
+    }
+  }
+
+  return newArray;
+}
+
 function $push(array) {
   var newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
@@ -262,12 +278,17 @@ function $sort(array, sorter) {
 }
 
 function clone(value) {
-  if (value instanceof Array) return value.slice();
-  return Object.assign({}, value);
+  if (value instanceof Array) {
+    return value.slice();
+  }
+  if (value === null || value === undefined || isPlainObject(value)) {
+    return Object.assign({}, value);
+  }
+  return value;
 }
 
 var isPlainObject = function isPlainObject(val) {
-  return !!val && (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object' && val.constructor === Object;
+  return !!val && (typeof val === "undefined" ? "undefined" : _typeof(val)) === "object" && val.constructor === Object;
 };
 
 function $remove(array) {
@@ -312,7 +333,7 @@ function createSelectorProxy(context) {
     return undefined;
   }, {
     get: function get(target, prop) {
-      if (prop === '__context__') return context;
+      if (prop === "__context__") return context;
       context = context.child(prop);
       return proxy;
     },
@@ -362,7 +383,7 @@ function traversal(parent, node) {
       var child = parent.childFromPath(key);
       if (value instanceof Array) {
         // is spec
-        if (value[0] instanceof Function || typeof value[0] === 'string') {
+        if (value[0] instanceof Function || typeof value[0] === "string") {
           // is modifier and its args
           child.apply.apply(child, value);
         } else {
@@ -501,7 +522,7 @@ function updatePath(state) {
 
 exports.default = update;
 var actions = exports.actions = {
-  '=': $set,
+  "=": $set,
   $assign: $assign,
   assign: $assign,
   $pop: $pop,
@@ -525,14 +546,49 @@ var actions = exports.actions = {
   $unshift: $unshift,
   unshift: $unshift,
   $swap: $swap,
-  swap: $swap
+  swap: $swap,
+  $removeAt: $removeAt,
+  removeAt: $removeAt
 };
 
-function define(name, action) {
+function cloneIfPossible(callback) {
+  return function () {
+    arguments[0] = clone(arguments[0]);
+    return callback.apply(null, arguments);
+  };
+}
+
+function define(name, action, disableAutoClone) {
+  // define(actionHash, disableAutoClone)
   if (isPlainObject(name)) {
-    Object.assign(actions, action);
+    disableAutoClone = action;
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
+
+    try {
+      for (var _iterator7 = Object.entries(name)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var pair = _step7.value;
+
+        actions[pair.key] = disableAutoClone ? pair.value : cloneIfPossible(pair.value);
+      }
+    } catch (err) {
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
+        }
+      } finally {
+        if (_didIteratorError7) {
+          throw _iteratorError7;
+        }
+      }
+    }
   } else {
-    actions[name] = action;
+    // define(name, action, disableAutoClone)
+    actions[name] = disableAutoClone ? action : cloneIfPossible(action);
   }
 }
 //# sourceMappingURL=index.js.map
