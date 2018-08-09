@@ -164,6 +164,13 @@ describe("samples", function() {
     });
   });
 
+  it("sub spec for root", function() {
+    const original = [1, 2, 3, 4, 5];
+    const result = update(original, [[x => x * 2]]);
+
+    expect(result).toEqual([2, 4, 6, 8, 10]);
+  });
+
   it("typescript api, proxy only", function() {
     const original = { a: { b: { c: [] } } };
     const result = updatePath(

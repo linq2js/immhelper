@@ -477,14 +477,77 @@ function $set(current) {
   return newValue;
 }
 
+function processSubSpec(child, value) {
+  // is sub spec
+  var spec = value[0];
+  var filter = value[1];
+  if (spec instanceof Array) {
+    // apply for each child
+    var _iteratorNormalCompletion5 = true;
+    var _didIteratorError5 = false;
+    var _iteratorError5 = undefined;
+
+    try {
+      for (var _iterator5 = Object.keys(child.value)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+        var key = _step5.value;
+
+        // only apply spec for child which is satisfied filter
+        if (filter && !filter(child.value[key], key)) {
+          continue;
+        }
+        var newChild = child.child(key);
+        newChild.apply.apply(newChild, spec);
+      }
+    } catch (err) {
+      _didIteratorError5 = true;
+      _iteratorError5 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return();
+        }
+      } finally {
+        if (_didIteratorError5) {
+          throw _iteratorError5;
+        }
+      }
+    }
+  } else {
+    var _iteratorNormalCompletion6 = true;
+    var _didIteratorError6 = false;
+    var _iteratorError6 = undefined;
+
+    try {
+      for (var _iterator6 = Object.keys(child.value)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+        var _key = _step6.value;
+
+        traversal(child.child(_key), spec);
+      }
+    } catch (err) {
+      _didIteratorError6 = true;
+      _iteratorError6 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+          _iterator6.return();
+        }
+      } finally {
+        if (_didIteratorError6) {
+          throw _iteratorError6;
+        }
+      }
+    }
+  }
+}
+
 function traversal(parent, node) {
-  var _iteratorNormalCompletion5 = true;
-  var _didIteratorError5 = false;
-  var _iteratorError5 = undefined;
+  var _iteratorNormalCompletion7 = true;
+  var _didIteratorError7 = false;
+  var _iteratorError7 = undefined;
 
   try {
-    for (var _iterator5 = Object.entries(node)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var pair = _step5.value;
+    for (var _iterator7 = Object.entries(node)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var pair = _step7.value;
 
       var key = pair[0];
       var value = pair[1];
@@ -499,66 +562,7 @@ function traversal(parent, node) {
           // is modifier and its args
           child.apply.apply(child, value);
         } else {
-          // is sub spec
-          var spec = value[0];
-          var filter = value[1];
-          if (spec instanceof Array) {
-            // apply for each child
-            var _iteratorNormalCompletion6 = true;
-            var _didIteratorError6 = false;
-            var _iteratorError6 = undefined;
-
-            try {
-              for (var _iterator6 = Object.keys(child.value)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                var _key = _step6.value;
-
-                // only apply spec for child which is satisfied filter
-                if (filter && !filter(child.value[_key], _key)) {
-                  continue;
-                }
-                var newChild = child.child(_key);
-                newChild.apply.apply(newChild, spec);
-              }
-            } catch (err) {
-              _didIteratorError6 = true;
-              _iteratorError6 = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                  _iterator6.return();
-                }
-              } finally {
-                if (_didIteratorError6) {
-                  throw _iteratorError6;
-                }
-              }
-            }
-          } else {
-            var _iteratorNormalCompletion7 = true;
-            var _didIteratorError7 = false;
-            var _iteratorError7 = undefined;
-
-            try {
-              for (var _iterator7 = Object.keys(child.value)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-                var _key2 = _step7.value;
-
-                traversal(child.child(_key2), spec);
-              }
-            } catch (err) {
-              _didIteratorError7 = true;
-              _iteratorError7 = err;
-            } finally {
-              try {
-                if (!_iteratorNormalCompletion7 && _iterator7.return) {
-                  _iterator7.return();
-                }
-              } finally {
-                if (_didIteratorError7) {
-                  throw _iteratorError7;
-                }
-              }
-            }
-          }
+          processSubSpec(child, value);
         }
       } else if (isPlainObject(value)) {
         traversal(child, value);
@@ -567,16 +571,16 @@ function traversal(parent, node) {
       }
     }
   } catch (err) {
-    _didIteratorError5 = true;
-    _iteratorError5 = err;
+    _didIteratorError7 = true;
+    _iteratorError7 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion5 && _iterator5.return) {
-        _iterator5.return();
+      if (!_iteratorNormalCompletion7 && _iterator7.return) {
+        _iterator7.return();
       }
     } finally {
-      if (_didIteratorError5) {
-        throw _iteratorError5;
+      if (_didIteratorError7) {
+        throw _iteratorError7;
       }
     }
   }
@@ -591,7 +595,11 @@ var update = exports.update = function update(state, changes) {
   var root = new Immutable(state);
 
   if (changes instanceof Array) {
-    root.apply.apply(root, changes);
+    if (changes[0] instanceof Array) {
+      processSubSpec(root, changes);
+    } else {
+      root.apply.apply(root, changes);
+    }
   } else {
     traversal(root, changes);
   }
@@ -602,8 +610,8 @@ var update = exports.update = function update(state, changes) {
 function updatePath(state) {
   var root = new Immutable(state);
 
-  for (var _len = arguments.length, specs = Array(_len > 1 ? _len - 1 : 0), _key3 = 1; _key3 < _len; _key3++) {
-    specs[_key3 - 1] = arguments[_key3];
+  for (var _len = arguments.length, specs = Array(_len > 1 ? _len - 1 : 0), _key2 = 1; _key2 < _len; _key2++) {
+    specs[_key2 - 1] = arguments[_key2];
   }
 
   var _iteratorNormalCompletion8 = true;

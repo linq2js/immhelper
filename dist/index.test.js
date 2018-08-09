@@ -168,6 +168,15 @@ describe("samples", function () {
     });
   });
 
+  it("sub spec for root", function () {
+    var original = [1, 2, 3, 4, 5];
+    var result = (0, _index.update)(original, [[function (x) {
+      return x * 2;
+    }]]);
+
+    expect(result).toEqual([2, 4, 6, 8, 10]);
+  });
+
   it("typescript api, proxy only", function () {
     var original = { a: { b: { c: [] } } };
     var result = (0, _index.updatePath)(original, function (x) {

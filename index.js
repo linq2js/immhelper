@@ -333,6 +333,27 @@ export function $set(current) {
   return newValue;
 }
 
+function processSubSpec(child, value) {
+  // is sub spec
+  const spec = value[0];
+  const filter = value[1];
+  if (spec instanceof Array) {
+    // apply for each child
+    for (let key of Object.keys(child.value)) {
+      // only apply spec for child which is satisfied filter
+      if (filter && !filter(child.value[key], key)) {
+        continue;
+      }
+      const newChild = child.child(key);
+      newChild.apply.apply(newChild, spec);
+    }
+  } else {
+    for (let key of Object.keys(child.value)) {
+      traversal(child.child(key), spec);
+    }
+  }
+}
+
 function traversal(parent, node) {
   for (let pair of Object.entries(node)) {
     const key = pair[0];
@@ -348,24 +369,7 @@ function traversal(parent, node) {
         // is modifier and its args
         child.apply.apply(child, value);
       } else {
-        // is sub spec
-        const spec = value[0];
-        const filter = value[1];
-        if (spec instanceof Array) {
-          // apply for each child
-          for (let key of Object.keys(child.value)) {
-            // only apply spec for child which is satisfied filter
-            if (filter && !filter(child.value[key], key)) {
-              continue;
-            }
-            const newChild = child.child(key);
-            newChild.apply.apply(newChild, spec);
-          }
-        } else {
-          for (let key of Object.keys(child.value)) {
-            traversal(child.child(key), spec);
-          }
-        }
+        processSubSpec(child, value);
       }
     } else if (isPlainObject(value)) {
       traversal(child, value);
@@ -384,7 +388,11 @@ export const update = (state, changes) => {
   const root = new Immutable(state);
 
   if (changes instanceof Array) {
-    root.apply.apply(root, changes);
+    if (changes[0] instanceof Array) {
+      processSubSpec(root, changes);
+    } else {
+      root.apply.apply(root, changes);
+    }
   } else {
     traversal(root, changes);
   }
