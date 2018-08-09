@@ -1,5 +1,20 @@
 # immhelper
 
+<p align="center">
+  <a href="https://unpkg.com/immhelper/dist/index.js">
+    <img src="http://img.badgesize.io/https://unpkg.com/immhelper/dist/index.js?compression=gzip&amp;label=immhelper">
+  </a>
+  <a href="https://unpkg.com/immhelper/dist/index.js">
+    <img src="http://img.badgesize.io/https://unpkg.com/immhelper/dist/index.js?compression=gzip&amp;label=immhelper">
+  </a>
+  <a href="./package.json">
+    <img src="https://img.shields.io/npm/v/immhelper.svg?maxAge=3600&label=immhelper&colorB=007ec6">
+  </a>
+  <a href="./License.md">
+    <img src="https://img.shields.io/npm/l/immhelper.svg?maxAge=3600">
+  </a>
+</p>
+
 Fast and lightweight library helps you to update js objects without mutating them
 
 ## Install with npm
