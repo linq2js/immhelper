@@ -41,7 +41,8 @@ describe("samples", function () {
       },
       removeByIndexes: [1, 2, 3, 4],
       batchProcessing: {},
-      pipeProcessing: 'hello'
+      pipeProcessing: 'hello',
+      doubleOddNumbers: [1, 2, 3, 4]
     };
     var specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -80,6 +81,12 @@ describe("samples", function () {
         return x.toUpperCase();
       }, function (x) {
         return x + ' WORLD!!!';
+      }],
+      //  apply sub spec for only odd numbers
+      doubleOddNumbers: [[function (x) {
+        return x * 2;
+      }], function (x) {
+        return x % 2;
       }]
     };
     var result = (0, _index.update)(original, specs);
@@ -125,7 +132,8 @@ describe("samples", function () {
         name: "Peter",
         age: 20
       },
-      pipeProcessing: 'HELLO WORLD!!!'
+      pipeProcessing: 'HELLO WORLD!!!',
+      doubleOddNumbers: [2, 2, 6, 4]
     });
   });
 

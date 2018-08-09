@@ -310,16 +310,21 @@ function traversal(parent, node) {
     }
     const child = parent.childFromPath(key);
     if (value instanceof Array) {
-      // is spec
+      // is main spec
       if (value[0] instanceof Function || typeof value[0] === "string") {
         // is modifier and its args
         child.apply.apply(child, value);
       } else {
         // is sub spec
         const spec = value[0];
+        const filter = value[1];
         if (spec instanceof Array) {
           // apply for each child
           for (let key of Object.keys(child.value)) {
+            // only apply spec for child which is satisfied filter
+            if (filter && !filter(child.value[key], key)) {
+              continue;
+            }
             const newChild = child.child(key);
             newChild.apply.apply(newChild, spec);
           }

@@ -461,13 +461,14 @@ function traversal(parent, node) {
       }
       var child = parent.childFromPath(key);
       if (value instanceof Array) {
-        // is spec
+        // is main spec
         if (value[0] instanceof Function || typeof value[0] === "string") {
           // is modifier and its args
           child.apply.apply(child, value);
         } else {
           // is sub spec
           var spec = value[0];
+          var filter = value[1];
           if (spec instanceof Array) {
             // apply for each child
             var _iteratorNormalCompletion6 = true;
@@ -478,6 +479,10 @@ function traversal(parent, node) {
               for (var _iterator6 = Object.keys(child.value)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
                 var _key = _step6.value;
 
+                // only apply spec for child which is satisfied filter
+                if (filter && !filter(child.value[_key], _key)) {
+                  continue;
+                }
                 var newChild = child.child(_key);
                 newChild.apply.apply(newChild, spec);
               }
