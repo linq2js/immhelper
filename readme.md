@@ -21,18 +21,19 @@ npm install immhelper --save
 ```
 
 ## Features
-1. Extreme fast
-1. Lightweight
-1. Provide many powerful mutating actions
-1. Easy to define custom mutating actions
-1. Support batch processing per spec
-1. Support pipe processing per spec
-1. Support deep updating with target path
-1. Support sub spec with filter
-1. Support named mutating actions
-1. Support typescripts autocomplete
-1. Support proxy for selecting and updating target
-1. Support API to update spec for special cases
+
+1.  Extreme fast
+1.  Lightweight
+1.  Provide many powerful mutating actions
+1.  Easy to define custom mutating actions
+1.  Support batch processing per spec
+1.  Support pipe processing per spec
+1.  Support deep updating with target path
+1.  Support sub spec with filter
+1.  Support named mutating actions
+1.  Support typescripts autocomplete
+1.  Support proxy for selecting and updating target
+1.  Support API to update spec for special cases
 
 ## Benchmarks (Fastest to Slowest)
 
@@ -119,7 +120,8 @@ const original = {
   doubleOddNumbers: [1, 2, 3, 4],
   parentNode: {
     childNode: {}
-  }
+  },
+  parentNodes: [{ id: 0 }, { id: 1 }]
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -155,6 +157,10 @@ const specs = {
   parentNode: {
     // remove childNode its self from parentNode
     childNode: ["unset"]
+  },
+  // remove item at index 1 from parentNodes array
+  parentNodes: {
+    1: ["unset"]
   }
 };
 const result = update(original, specs);
@@ -201,7 +207,8 @@ expect(result).toEqual({
   },
   pipeProcessing: "HELLO WORLD!!!",
   doubleOddNumbers: [2, 2, 6, 4],
-  parentNode: {}
+  parentNode: {},
+  parentNodes: [{ id: 0 }]
 });
 ```
 

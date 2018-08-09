@@ -54,7 +54,8 @@ describe("samples", function() {
       doubleOddNumbers: [1, 2, 3, 4],
       parentNode: {
         childNode: {}
-      }
+      },
+      parentNodes: [{ id: 0 }, { id: 1 }]
     };
     const specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -90,6 +91,10 @@ describe("samples", function() {
       parentNode: {
         // remove childNode its self from parentNode
         childNode: ["unset"]
+      },
+      // remove item at index 1 from parentNodes array
+      parentNodes: {
+        1: ["unset"]
       }
     };
     const result = update(original, specs);
@@ -137,7 +142,8 @@ describe("samples", function() {
       },
       pipeProcessing: "HELLO WORLD!!!",
       doubleOddNumbers: [2, 2, 6, 4],
-      parentNode: {}
+      parentNode: {},
+      parentNodes: [{ id: 0 }]
     });
   });
 

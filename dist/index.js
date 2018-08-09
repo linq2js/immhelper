@@ -279,7 +279,11 @@ function $unset(current) {
         if (!parent.changed) {
           parent.value = clone(parent.value);
         }
-        delete parent.value[node.path];
+        if (parent.value instanceof Array) {
+          parent.value.splice(node.path, 1);
+        } else {
+          delete parent.value[node.path];
+        }
         delete node.parent;
         parent.change(true);
       } else {
