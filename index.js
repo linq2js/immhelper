@@ -12,7 +12,7 @@ const {
   splice: arraySplice,
   sort: arraySort
 } = Array.prototype;
-
+const contextProp = "@@context";
 export function configure(newConfigs) {
   Object.assign(configs, newConfigs);
 }
@@ -121,6 +121,63 @@ class Immutable {
       ? path
       : path.split(configs.separator)
     ).reduce((parent, path) => parent.child(path), this);
+  }
+
+  descendants(pattern, specsOrCallback) {
+    let callback;
+    if (pattern) {
+      // match node by pattern and data must be specs
+      const specs = specsOrCallback;
+      // convert pattern to regex
+      const [, exp, flags] = pattern.split("/");
+      pattern = new RegExp(exp, flags);
+      callback = function(value) {
+        if (typeof value === "object") {
+          for (let key in value) {
+            if (pattern.test(key)) {
+              return specs;
+            }
+          }
+        }
+        return undefined;
+      };
+    } else {
+      if (specsOrCallback instanceof Array) {
+        // [match, ...specs]
+        // callback can return false to skip checking node or return spec index
+        const originalCallback = specsOrCallback[0];
+        const specs = specsOrCallback.slice(1);
+        callback = function() {
+          const result = originalCallback.apply(null, arguments);
+          if (typeof result === "number") {
+            return specs[result];
+          }
+          return result ? specs[0] : undefined;
+        };
+      } else {
+        // data must be callback func, it will be called when visit node
+        callback = specsOrCallback;
+      }
+    }
+
+    function traversal(root, parent, path) {
+      if (parent instanceof Array || isPlainObject(parent)) {
+        for (let pair of Object.entries(parent)) {
+          const value = pair[1];
+          const key = pair[0];
+          const childPath = path.concat(key);
+          const specs = callback(value, key);
+          if (specs) {
+            // create node from path
+            const node = root.childFromPath(childPath);
+            processSpec(node, specs);
+          }
+          traversal(root, value, childPath);
+        }
+      }
+    }
+
+    traversal(this, this.value, []);
   }
 }
 
@@ -300,7 +357,7 @@ export function $assign(obj) {
 function createSelectorProxy(context) {
   const proxy = new Proxy(x => undefined, {
     get(target, prop) {
-      if (prop === "__context__") return context;
+      if (prop === contextProp) return context;
       context = context.child(prop);
       return proxy;
     },
@@ -333,6 +390,16 @@ export function $set(current) {
   return newValue;
 }
 
+function processSpec(child, value) {
+  // is main spec
+  if (value[0] instanceof Function || typeof value[0] === "string") {
+    // is modifier and its args
+    child.apply.apply(child, value);
+  } else {
+    processSubSpec(child, value);
+  }
+}
+
 function processSubSpec(child, value) {
   // is sub spec
   const spec = value[0];
@@ -358,19 +425,18 @@ function traversal(parent, node) {
   for (let pair of Object.entries(node)) {
     const key = pair[0];
     let value = pair[1];
+    if (key.charAt(0) === "?") {
+      // is wildcard
+      parent.descendants(key.substr(1), value);
+      continue;
+    }
     // convert obj method to custom modifier
     if (value instanceof Function) {
       value = [value];
     }
     const child = parent.childFromPath(key);
     if (value instanceof Array) {
-      // is main spec
-      if (value[0] instanceof Function || typeof value[0] === "string") {
-        // is modifier and its args
-        child.apply.apply(child, value);
-      } else {
-        processSubSpec(child, value);
-      }
+      processSpec(child, value);
     } else if (isPlainObject(value)) {
       traversal(child, value);
     } else {
@@ -388,11 +454,7 @@ export const update = (state, changes) => {
   const root = new Immutable(state);
 
   if (changes instanceof Array) {
-    if (changes[0] instanceof Array) {
-      processSubSpec(root, changes);
-    } else {
-      root.apply.apply(root, changes);
-    }
+    processSpec(root, changes);
   } else {
     traversal(root, changes);
   }
@@ -409,7 +471,7 @@ export function updatePath(state, ...specs) {
     }
     const selector = spec[0];
     const args = spec.slice(1);
-    const node = selector(createSelectorProxy(root)).__context__;
+    const node = selector(createSelectorProxy(root))[contextProp];
     if (args.length) {
       node.apply.apply(node, args);
     }

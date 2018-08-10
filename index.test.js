@@ -55,7 +55,22 @@ describe("samples", function() {
       parentNode: {
         childNode: {}
       },
-      parentNodes: [{ id: 0 }, { id: 1 }]
+      parentNodes: [{ id: 0 }, { id: 1 }],
+      updateTree: {
+        text: "root",
+        children: [
+          {
+            text: "child 1",
+            data: {},
+            children: [{ text: "child 1.1" }]
+          },
+          {
+            text: "child 2",
+            data: {},
+            children: [{ text: "child 2.1" }, { text: "child 2.2" }]
+          }
+        ]
+      }
     };
     const specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -95,6 +110,23 @@ describe("samples", function() {
       // remove item at index 1 from parentNodes array
       parentNodes: {
         1: ["unset"]
+      },
+      updateTree: {
+        // using conditional spec to update all nodes which has text prop, exclude all data nodes
+        "?": [node => node && node.text, ["set", "done", true]],
+        // do same thing with pattern matching
+        "?/text/i": ["set", "deleted", true],
+        children: {
+          // using diff spec for each node
+          "?"(node, prop) {
+            if (node && node.text) {
+              return prop % 2 === 0
+                ? ["set", "isEven", true]
+                : ["set", "isOdd", true];
+            }
+            return undefined;
+          }
+        }
       }
     };
     const result = update(original, specs);
@@ -143,7 +175,33 @@ describe("samples", function() {
       pipeProcessing: "HELLO WORLD!!!",
       doubleOddNumbers: [2, 2, 6, 4],
       parentNode: {},
-      parentNodes: [{ id: 0 }]
+      parentNodes: [{ id: 0 }],
+      updateTree: {
+        text: "root",
+        children: [
+          {
+            text: "child 1",
+            done: true,
+            deleted: true,
+            isEven: true,
+            data: {},
+            children: [
+              { text: "child 1.1", done: true, deleted: true, isEven: true }
+            ]
+          },
+          {
+            text: "child 2",
+            done: true,
+            deleted: true,
+            isOdd: true,
+            data: {},
+            children: [
+              { text: "child 2.1", done: true, deleted: true, isEven: true },
+              { text: "child 2.2", done: true, deleted: true, isOdd: true }
+            ]
+          }
+        ]
+      }
     });
   });
 
@@ -166,7 +224,7 @@ describe("samples", function() {
 
   it("sub spec for root", function() {
     const original = [1, 2, 3, 4, 5];
-    const result = update(original, ['push', 1]);
+    const result = update(original, ["push", 1]);
 
     expect(result).toEqual([1, 2, 3, 4, 5, 1]);
   });

@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 exports.configure = configure;
@@ -41,6 +43,8 @@ var _Array$prototype = Array.prototype,
     arrayPop = _Array$prototype.pop,
     arraySplice = _Array$prototype.splice,
     arraySort = _Array$prototype.sort;
+
+var contextProp = "@@context";
 function configure(newConfigs) {
   Object.assign(configs, newConfigs);
 }
@@ -226,6 +230,90 @@ var Immutable = function () {
         return parent.child(path);
       }, this);
     }
+  }, {
+    key: "descendants",
+    value: function descendants(pattern, specsOrCallback) {
+      var callback = void 0;
+      if (pattern) {
+        // match node by pattern and data must be specs
+        var specs = specsOrCallback;
+        // convert pattern to regex
+
+        var _pattern$split = pattern.split("/"),
+            _pattern$split2 = _slicedToArray(_pattern$split, 3),
+            exp = _pattern$split2[1],
+            flags = _pattern$split2[2];
+
+        pattern = new RegExp(exp, flags);
+        callback = function callback(value) {
+          if ((typeof value === "undefined" ? "undefined" : _typeof(value)) === "object") {
+            for (var key in value) {
+              if (pattern.test(key)) {
+                return specs;
+              }
+            }
+          }
+          return undefined;
+        };
+      } else {
+        if (specsOrCallback instanceof Array) {
+          // [match, ...specs]
+          // callback can return false to skip checking node or return spec index
+          var originalCallback = specsOrCallback[0];
+          var _specs = specsOrCallback.slice(1);
+          callback = function callback() {
+            var result = originalCallback.apply(null, arguments);
+            if (typeof result === "number") {
+              return _specs[result];
+            }
+            return result ? _specs[0] : undefined;
+          };
+        } else {
+          // data must be callback func, it will be called when visit node
+          callback = specsOrCallback;
+        }
+      }
+
+      function traversal(root, parent, path) {
+        if (parent instanceof Array || isPlainObject(parent)) {
+          var _iteratorNormalCompletion4 = true;
+          var _didIteratorError4 = false;
+          var _iteratorError4 = undefined;
+
+          try {
+            for (var _iterator4 = Object.entries(parent)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+              var pair = _step4.value;
+
+              var value = pair[1];
+              var key = pair[0];
+              var childPath = path.concat(key);
+              var _specs2 = callback(value, key);
+              if (_specs2) {
+                // create node from path
+                var node = root.childFromPath(childPath);
+                processSpec(node, _specs2);
+              }
+              traversal(root, value, childPath);
+            }
+          } catch (err) {
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                _iterator4.return();
+              }
+            } finally {
+              if (_didIteratorError4) {
+                throw _iteratorError4;
+              }
+            }
+          }
+        }
+      }
+
+      traversal(this, this.value, []);
+    }
   }]);
 
   return Immutable;
@@ -237,27 +325,27 @@ function $toggle(current) {
     return !current;
   }
   var newValue = clone(current);
-  var _iteratorNormalCompletion4 = true;
-  var _didIteratorError4 = false;
-  var _iteratorError4 = undefined;
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
 
   try {
-    for (var _iterator4 = props[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var prop = _step4.value;
+    for (var _iterator5 = props[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var prop = _step5.value;
 
       newValue[prop] = !newValue[prop];
     }
   } catch (err) {
-    _didIteratorError4 = true;
-    _iteratorError4 = err;
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion4 && _iterator4.return) {
-        _iterator4.return();
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
       }
     } finally {
-      if (_didIteratorError4) {
-        throw _iteratorError4;
+      if (_didIteratorError5) {
+        throw _iteratorError5;
       }
     }
   }
@@ -444,7 +532,7 @@ function createSelectorProxy(context) {
     return undefined;
   }, {
     get: function get(target, prop) {
-      if (prop === "__context__") return context;
+      if (prop === contextProp) return context;
       context = context.child(prop);
       return proxy;
     },
@@ -477,19 +565,29 @@ function $set(current) {
   return newValue;
 }
 
+function processSpec(child, value) {
+  // is main spec
+  if (value[0] instanceof Function || typeof value[0] === "string") {
+    // is modifier and its args
+    child.apply.apply(child, value);
+  } else {
+    processSubSpec(child, value);
+  }
+}
+
 function processSubSpec(child, value) {
   // is sub spec
   var spec = value[0];
   var filter = value[1];
   if (spec instanceof Array) {
     // apply for each child
-    var _iteratorNormalCompletion5 = true;
-    var _didIteratorError5 = false;
-    var _iteratorError5 = undefined;
+    var _iteratorNormalCompletion6 = true;
+    var _didIteratorError6 = false;
+    var _iteratorError6 = undefined;
 
     try {
-      for (var _iterator5 = Object.keys(child.value)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-        var key = _step5.value;
+      for (var _iterator6 = Object.keys(child.value)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+        var key = _step6.value;
 
         // only apply spec for child which is satisfied filter
         if (filter && !filter(child.value[key], key)) {
@@ -497,31 +595,6 @@ function processSubSpec(child, value) {
         }
         var newChild = child.child(key);
         newChild.apply.apply(newChild, spec);
-      }
-    } catch (err) {
-      _didIteratorError5 = true;
-      _iteratorError5 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-          _iterator5.return();
-        }
-      } finally {
-        if (_didIteratorError5) {
-          throw _iteratorError5;
-        }
-      }
-    }
-  } else {
-    var _iteratorNormalCompletion6 = true;
-    var _didIteratorError6 = false;
-    var _iteratorError6 = undefined;
-
-    try {
-      for (var _iterator6 = Object.keys(child.value)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-        var _key = _step6.value;
-
-        traversal(child.child(_key), spec);
       }
     } catch (err) {
       _didIteratorError6 = true;
@@ -537,33 +610,57 @@ function processSubSpec(child, value) {
         }
       }
     }
+  } else {
+    var _iteratorNormalCompletion7 = true;
+    var _didIteratorError7 = false;
+    var _iteratorError7 = undefined;
+
+    try {
+      for (var _iterator7 = Object.keys(child.value)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+        var _key = _step7.value;
+
+        traversal(child.child(_key), spec);
+      }
+    } catch (err) {
+      _didIteratorError7 = true;
+      _iteratorError7 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+          _iterator7.return();
+        }
+      } finally {
+        if (_didIteratorError7) {
+          throw _iteratorError7;
+        }
+      }
+    }
   }
 }
 
 function traversal(parent, node) {
-  var _iteratorNormalCompletion7 = true;
-  var _didIteratorError7 = false;
-  var _iteratorError7 = undefined;
+  var _iteratorNormalCompletion8 = true;
+  var _didIteratorError8 = false;
+  var _iteratorError8 = undefined;
 
   try {
-    for (var _iterator7 = Object.entries(node)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-      var pair = _step7.value;
+    for (var _iterator8 = Object.entries(node)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+      var pair = _step8.value;
 
       var key = pair[0];
       var value = pair[1];
+      if (key.charAt(0) === "?") {
+        // is wildcard
+        parent.descendants(key.substr(1), value);
+        continue;
+      }
       // convert obj method to custom modifier
       if (value instanceof Function) {
         value = [value];
       }
       var child = parent.childFromPath(key);
       if (value instanceof Array) {
-        // is main spec
-        if (value[0] instanceof Function || typeof value[0] === "string") {
-          // is modifier and its args
-          child.apply.apply(child, value);
-        } else {
-          processSubSpec(child, value);
-        }
+        processSpec(child, value);
       } else if (isPlainObject(value)) {
         traversal(child, value);
       } else {
@@ -571,16 +668,16 @@ function traversal(parent, node) {
       }
     }
   } catch (err) {
-    _didIteratorError7 = true;
-    _iteratorError7 = err;
+    _didIteratorError8 = true;
+    _iteratorError8 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion7 && _iterator7.return) {
-        _iterator7.return();
+      if (!_iteratorNormalCompletion8 && _iterator8.return) {
+        _iterator8.return();
       }
     } finally {
-      if (_didIteratorError7) {
-        throw _iteratorError7;
+      if (_didIteratorError8) {
+        throw _iteratorError8;
       }
     }
   }
@@ -595,11 +692,7 @@ var update = exports.update = function update(state, changes) {
   var root = new Immutable(state);
 
   if (changes instanceof Array) {
-    if (changes[0] instanceof Array) {
-      processSubSpec(root, changes);
-    } else {
-      root.apply.apply(root, changes);
-    }
+    processSpec(root, changes);
   } else {
     traversal(root, changes);
   }
@@ -614,35 +707,35 @@ function updatePath(state) {
     specs[_key2 - 1] = arguments[_key2];
   }
 
-  var _iteratorNormalCompletion8 = true;
-  var _didIteratorError8 = false;
-  var _iteratorError8 = undefined;
+  var _iteratorNormalCompletion9 = true;
+  var _didIteratorError9 = false;
+  var _iteratorError9 = undefined;
 
   try {
-    for (var _iterator8 = specs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-      var spec = _step8.value;
+    for (var _iterator9 = specs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+      var spec = _step9.value;
 
       if (spec instanceof Function) {
         spec = [spec];
       }
       var selector = spec[0];
       var args = spec.slice(1);
-      var node = selector(createSelectorProxy(root)).__context__;
+      var node = selector(createSelectorProxy(root))[contextProp];
       if (args.length) {
         node.apply.apply(node, args);
       }
     }
   } catch (err) {
-    _didIteratorError8 = true;
-    _iteratorError8 = err;
+    _didIteratorError9 = true;
+    _iteratorError9 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion8 && _iterator8.return) {
-        _iterator8.return();
+      if (!_iteratorNormalCompletion9 && _iterator9.return) {
+        _iterator9.return();
       }
     } finally {
-      if (_didIteratorError8) {
-        throw _iteratorError8;
+      if (_didIteratorError9) {
+        throw _iteratorError9;
       }
     }
   }
@@ -694,27 +787,27 @@ function define(name, action, disableAutoClone) {
   // define(actionHash, disableAutoClone)
   if (isPlainObject(name)) {
     disableAutoClone = action;
-    var _iteratorNormalCompletion9 = true;
-    var _didIteratorError9 = false;
-    var _iteratorError9 = undefined;
+    var _iteratorNormalCompletion10 = true;
+    var _didIteratorError10 = false;
+    var _iteratorError10 = undefined;
 
     try {
-      for (var _iterator9 = Object.entries(name)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-        var pair = _step9.value;
+      for (var _iterator10 = Object.entries(name)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+        var pair = _step10.value;
 
         actions[pair.key] = disableAutoClone ? pair.value : cloneIfPossible(pair.value);
       }
     } catch (err) {
-      _didIteratorError9 = true;
-      _iteratorError9 = err;
+      _didIteratorError10 = true;
+      _iteratorError10 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion9 && _iterator9.return) {
-          _iterator9.return();
+        if (!_iteratorNormalCompletion10 && _iterator10.return) {
+          _iterator10.return();
         }
       } finally {
-        if (_didIteratorError9) {
-          throw _iteratorError9;
+        if (_didIteratorError10) {
+          throw _iteratorError10;
         }
       }
     }
