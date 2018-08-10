@@ -170,6 +170,13 @@ describe("samples", function () {
 
   it("sub spec for root", function () {
     var original = [1, 2, 3, 4, 5];
+    var result = (0, _index.update)(original, ['push', 1]);
+
+    expect(result).toEqual([1, 2, 3, 4, 5, 1]);
+  });
+
+  it("sub spec for root", function () {
+    var original = [1, 2, 3, 4, 5];
     var result = (0, _index.update)(original, [[function (x) {
       return x * 2;
     }]]);

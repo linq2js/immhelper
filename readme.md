@@ -35,6 +35,9 @@ npm install immhelper --save
 1.  Support proxy for selecting and updating target
 1.  Support API to update spec for special cases
 
+## Playground
+https://p5243pkx6q.codesandbox.io/
+
 ## Benchmarks (Fastest to Slowest)
 
 [Show details](benchmarks-result-03.txt)
@@ -128,7 +131,7 @@ const specs = {
   "a.b.c.d.e.f": [$set, 100],
   "a.b.c.d.e": [$set, "newProp", 100],
   arrayPush: [$push, 1, 2, 3, 4, 5],
-  objMerge: [$merge, { age: 20 }, { school: "A" }],
+  objMerge: [$assign, { age: 20 }, { school: "A" }],
   // using obj method as modifier
   sqrt(x) {
     return Math.sqrt(x);
