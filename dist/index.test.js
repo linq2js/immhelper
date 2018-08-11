@@ -157,7 +157,7 @@ describe("samples", function () {
         male: ["set", "sex", "male"],
         default: ["set", "sex", "female"]
       }],
-      usingFilter: ['filter', function (x) {
+      usingFilter: ["filter", function (x) {
         return x % 2 === 0;
       }]
     };

@@ -8,7 +8,8 @@ import {
   $toggle,
   $unset,
   $set,
-  $remove
+  $remove,
+  mergeDeep
 } from "./index";
 
 describe("samples", function() {
@@ -166,7 +167,7 @@ describe("samples", function() {
           default: ["set", "sex", "female"]
         }
       ],
-      usingFilter: ['filter', x => x % 2 === 0]
+      usingFilter: ["filter", x => x % 2 === 0]
     };
     const result = update(original, specs);
 

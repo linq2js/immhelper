@@ -54,6 +54,11 @@ function configure(newConfigs) {
   Object.assign(configs, newConfigs);
 }
 
+function isEqual(a, b) {
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+  return a === b;
+}
+
 var Immutable = function () {
   function Immutable(value, parent, path) {
     _classCallCheck(this, Immutable);
@@ -110,7 +115,7 @@ var Immutable = function () {
         return this;
       }
 
-      var newValue = modifier.apply(null, [this.value].concat(args));
+      var newValue = modifier.apply(null, [this.value instanceof Date ? new Date(this.value.getTime()) : this.value].concat(args));
 
       // need special context
       while (newValue instanceof Function) {
@@ -121,7 +126,7 @@ var Immutable = function () {
         return this;
       }
 
-      if (newValue !== this.value) {
+      if (!isEqual(newValue, this.value)) {
         this.value = newValue;
         this.change(true);
       }
@@ -808,7 +813,7 @@ var actions = exports.actions = {
   $switch: $switch,
   switch: $switch,
   $filter: $filter,
-  'filter': $filter
+  filter: $filter
 };
 
 function cloneIfPossible(callback) {
