@@ -31,9 +31,10 @@ npm install immhelper --save
 1.  Support deep updating with target path
 1.  Support sub spec with filter
 1.  Support named mutating actions
-1.  Support typescripts autocomplete
+1.  Support typescripts auto complete
 1.  Support proxy for selecting and updating target
-1.  Support API to update spec for special cases
+1.  Support low level API to update spec for special cases
+1.  Support conditional update actions: if, unless, switch
 
 ## Playground
 
@@ -140,6 +141,16 @@ const original = {
         children: [{ text: "child 2.1" }, { text: "child 2.2" }]
       }
     ]
+  },
+  usingIfToUpdate: {
+    value: 1
+  },
+  usingUnlessToUpdate: {
+    dataLoaded: false
+  },
+  usingSwitchToUpdate1: 1,
+  usingSwitchToUpdate2: {
+    value: true
   }
 };
 const specs = {
@@ -197,7 +208,34 @@ const specs = {
         return undefined;
       }
     }
-  }
+  },
+  usingIfToUpdate: [
+    "if",
+    x => x % 2 === 0,
+    ["set", "isEven", true],
+    ["set", "isOdd", true]
+  ],
+  usingUnlessToUpdate: [
+    "unless",
+    x => x.dataLoaded,
+    ["set", "text", "loading..."]
+  ],
+  usingSwitchToUpdate1: [
+    "switch",
+    {
+      1: ["set", "one"],
+      2: ["set", "two"],
+      default: ["set", "other"]
+    }
+  ],
+  usingSwitchToUpdate2: [
+    "switch",
+    x => (x.value ? "male" : "female"),
+    {
+      male: ["set", "sex", "male"],
+      default: ["set", "sex", "female"]
+    }
+  ]
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -270,6 +308,19 @@ expect(result).toEqual({
         ]
       }
     ]
+  },
+  usingIfToUpdate: {
+    value: 1,
+    isOdd: true
+  },
+  usingUnlessToUpdate: {
+    dataLoaded: false,
+    text: "loading..."
+  },
+  usingSwitchToUpdate1: "one",
+  usingSwitchToUpdate2: {
+    value: true,
+    sex: "male"
   }
 });
 ```

@@ -58,6 +58,16 @@ describe("samples", function () {
           data: {},
           children: [{ text: "child 2.1" }, { text: "child 2.2" }]
         }]
+      },
+      usingIfToUpdate: {
+        value: 1
+      },
+      usingUnlessToUpdate: {
+        dataLoaded: false
+      },
+      usingSwitchToUpdate1: 1,
+      usingSwitchToUpdate2: {
+        value: true
       }
     };
     var specs = {
@@ -128,7 +138,24 @@ describe("samples", function () {
             return undefined;
           }
         }
-      }
+      },
+      usingIfToUpdate: ["if", function (x) {
+        return x % 2 === 0;
+      }, ["set", "isEven", true], ["set", "isOdd", true]],
+      usingUnlessToUpdate: ["unless", function (x) {
+        return x.dataLoaded;
+      }, ["set", "text", "loading..."]],
+      usingSwitchToUpdate1: ["switch", {
+        1: ["set", "one"],
+        2: ["set", "two"],
+        default: ["set", "other"]
+      }],
+      usingSwitchToUpdate2: ["switch", function (x) {
+        return x.value ? "male" : "female";
+      }, {
+        male: ["set", "sex", "male"],
+        default: ["set", "sex", "female"]
+      }]
     };
     var result = (0, _index.update)(original, specs);
 
@@ -194,6 +221,19 @@ describe("samples", function () {
           data: {},
           children: [{ text: "child 2.1", done: true, deleted: true, isEven: true }, { text: "child 2.2", done: true, deleted: true, isOdd: true }]
         }]
+      },
+      usingIfToUpdate: {
+        value: 1,
+        isOdd: true
+      },
+      usingUnlessToUpdate: {
+        dataLoaded: false,
+        text: "loading..."
+      },
+      usingSwitchToUpdate1: "one",
+      usingSwitchToUpdate2: {
+        value: true,
+        sex: "male"
       }
     });
   });

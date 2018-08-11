@@ -23,6 +23,10 @@ exports.$sort = $sort;
 exports.$remove = $remove;
 exports.$swap = $swap;
 exports.$assign = $assign;
+exports.spec = spec;
+exports.$if = $if;
+exports.$switch = $switch;
+exports.$unless = $unless;
 exports.$set = $set;
 exports.$batch = $batch;
 exports.updatePath = updatePath;
@@ -108,8 +112,12 @@ var Immutable = function () {
       var newValue = modifier.apply(null, [this.value].concat(args));
 
       // need special context
-      if (newValue instanceof Function) {
+      while (newValue instanceof Function) {
         newValue = newValue(this);
+      }
+      // nothing to change
+      if (newValue === this) {
+        return this;
       }
 
       if (newValue !== this.value) {
@@ -551,6 +559,33 @@ function createSelectorProxy(context) {
   return proxy;
 }
 
+function spec(value) {
+  return function (node) {
+    if (value) {
+      processSpec(node, value);
+    }
+    return node;
+  };
+}
+
+function $if(current, condition, thenSpec, elseSpec) {
+  return spec(condition(current) ? thenSpec : elseSpec);
+}
+
+function $switch(current, makeChoice) {
+  var specs = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  if (!(makeChoice instanceof Function)) {
+    specs = makeChoice;
+    makeChoice = null;
+  }
+  return spec(specs[makeChoice instanceof Function ? makeChoice(current) : current] || specs.default);
+}
+
+function $unless(current, condition, value) {
+  return spec(condition(current) ? undefined : value);
+}
+
 function $set(current) {
   var args = arraySlice.call(arguments, 1);
   if (args.length < 2) {
@@ -713,13 +748,13 @@ function updatePath(state) {
 
   try {
     for (var _iterator9 = specs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-      var spec = _step9.value;
+      var _spec = _step9.value;
 
-      if (spec instanceof Function) {
-        spec = [spec];
+      if (_spec instanceof Function) {
+        _spec = [_spec];
       }
-      var selector = spec[0];
-      var args = spec.slice(1);
+      var selector = _spec[0];
+      var args = _spec.slice(1);
       var node = selector(createSelectorProxy(root))[contextProp];
       if (args.length) {
         node.apply.apply(node, args);
@@ -773,7 +808,13 @@ var actions = exports.actions = {
   $swap: $swap,
   swap: $swap,
   $removeAt: $removeAt,
-  removeAt: $removeAt
+  removeAt: $removeAt,
+  if: $if,
+  $if: $if,
+  $unless: $unless,
+  unless: $unless,
+  $switch: $switch,
+  switch: $switch
 };
 
 function cloneIfPossible(callback) {

@@ -50,8 +50,12 @@ class Immutable {
     let newValue = modifier.apply(null, [this.value].concat(args));
 
     // need special context
-    if (newValue instanceof Function) {
+    while (newValue instanceof Function) {
       newValue = newValue(this);
+    }
+    // nothing to change
+    if (newValue === this) {
+      return this;
     }
 
     if (newValue !== this.value) {
@@ -376,6 +380,34 @@ function createSelectorProxy(context) {
   return proxy;
 }
 
+export function spec(value) {
+  return function(node) {
+    if (value) {
+      processSpec(node, value);
+    }
+    return node;
+  };
+}
+
+export function $if(current, condition, thenSpec, elseSpec) {
+  return spec(condition(current) ? thenSpec : elseSpec);
+}
+
+export function $switch(current, makeChoice, specs = {}) {
+  if (!(makeChoice instanceof Function)) {
+    specs = makeChoice;
+    makeChoice = null;
+  }
+  return spec(
+    specs[makeChoice instanceof Function ? makeChoice(current) : current] ||
+      specs.default
+  );
+}
+
+export function $unless(current, condition, value) {
+  return spec(condition(current) ? undefined : value);
+}
+
 export function $set(current) {
   const args = arraySlice.call(arguments, 1);
   if (args.length < 2) {
@@ -511,7 +543,13 @@ export const actions = {
   $swap,
   swap: $swap,
   $removeAt,
-  removeAt: $removeAt
+  removeAt: $removeAt,
+  if: $if,
+  $if,
+  $unless,
+  unless: $unless,
+  $switch,
+  switch: $switch
 };
 
 function cloneIfPossible(callback) {

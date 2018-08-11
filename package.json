@@ -1,6 +1,6 @@
 {
   "name": "immhelper",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "description": "Fast and lightweight library helps you to update js objects without mutating them",
   "main": "./dist/index.js",
   "scripts": {
@@ -23,7 +23,14 @@
     "clone",
     "copy",
     "assign",
-    "typescript"
+    "typescript",
+    "state",
+    "clone",
+    "deepcopy",
+    "assign",
+    "copy",
+    "data",
+    "datastructure"
   ],
   "author": "linq2js",
   "license": "MIT",
