@@ -16,6 +16,7 @@ exports.$unset = $unset;
 exports.$splice = $splice;
 exports.$removeAt = $removeAt;
 exports.$push = $push;
+exports.$filter = $filter;
 exports.$unshift = $unshift;
 exports.$pop = $pop;
 exports.$shift = $shift;
@@ -450,6 +451,12 @@ function $push(array) {
   return array;
 }
 
+function $filter(array, filter) {
+  var newArray = array.filter(filter);
+  if (newArray.length !== array.length) return newArray;
+  return array;
+}
+
 function $unshift(array) {
   var newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
@@ -613,8 +620,10 @@ function processSpec(child, value) {
 function processSubSpec(child, value) {
   // is sub spec
   var spec = value[0];
-  var filter = value[1];
   if (spec instanceof Array) {
+    var filter = value[1];
+    var limit = value[2];
+    var applied = 0;
     // apply for each child
     var _iteratorNormalCompletion6 = true;
     var _didIteratorError6 = false;
@@ -630,6 +639,10 @@ function processSubSpec(child, value) {
         }
         var newChild = child.child(key);
         newChild.apply.apply(newChild, spec);
+        applied++;
+        if (limit && applied >= limit) {
+          break;
+        }
       }
     } catch (err) {
       _didIteratorError6 = true;
@@ -646,41 +659,20 @@ function processSubSpec(child, value) {
       }
     }
   } else {
-    var _iteratorNormalCompletion7 = true;
-    var _didIteratorError7 = false;
-    var _iteratorError7 = undefined;
-
-    try {
-      for (var _iterator7 = Object.keys(child.value)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-        var _key = _step7.value;
-
-        traversal(child.child(_key), spec);
-      }
-    } catch (err) {
-      _didIteratorError7 = true;
-      _iteratorError7 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion7 && _iterator7.return) {
-          _iterator7.return();
-        }
-      } finally {
-        if (_didIteratorError7) {
-          throw _iteratorError7;
-        }
-      }
+    for (var _key in child.value) {
+      traversal(child.child(_key), spec);
     }
   }
 }
 
 function traversal(parent, node) {
-  var _iteratorNormalCompletion8 = true;
-  var _didIteratorError8 = false;
-  var _iteratorError8 = undefined;
+  var _iteratorNormalCompletion7 = true;
+  var _didIteratorError7 = false;
+  var _iteratorError7 = undefined;
 
   try {
-    for (var _iterator8 = Object.entries(node)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-      var pair = _step8.value;
+    for (var _iterator7 = Object.entries(node)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+      var pair = _step7.value;
 
       var key = pair[0];
       var value = pair[1];
@@ -703,16 +695,16 @@ function traversal(parent, node) {
       }
     }
   } catch (err) {
-    _didIteratorError8 = true;
-    _iteratorError8 = err;
+    _didIteratorError7 = true;
+    _iteratorError7 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion8 && _iterator8.return) {
-        _iterator8.return();
+      if (!_iteratorNormalCompletion7 && _iterator7.return) {
+        _iterator7.return();
       }
     } finally {
-      if (_didIteratorError8) {
-        throw _iteratorError8;
+      if (_didIteratorError7) {
+        throw _iteratorError7;
       }
     }
   }
@@ -742,13 +734,13 @@ function updatePath(state) {
     specs[_key2 - 1] = arguments[_key2];
   }
 
-  var _iteratorNormalCompletion9 = true;
-  var _didIteratorError9 = false;
-  var _iteratorError9 = undefined;
+  var _iteratorNormalCompletion8 = true;
+  var _didIteratorError8 = false;
+  var _iteratorError8 = undefined;
 
   try {
-    for (var _iterator9 = specs[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
-      var _spec = _step9.value;
+    for (var _iterator8 = specs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+      var _spec = _step8.value;
 
       if (_spec instanceof Function) {
         _spec = [_spec];
@@ -761,16 +753,16 @@ function updatePath(state) {
       }
     }
   } catch (err) {
-    _didIteratorError9 = true;
-    _iteratorError9 = err;
+    _didIteratorError8 = true;
+    _iteratorError8 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion9 && _iterator9.return) {
-        _iterator9.return();
+      if (!_iteratorNormalCompletion8 && _iterator8.return) {
+        _iterator8.return();
       }
     } finally {
-      if (_didIteratorError9) {
-        throw _iteratorError9;
+      if (_didIteratorError8) {
+        throw _iteratorError8;
       }
     }
   }
@@ -814,7 +806,9 @@ var actions = exports.actions = {
   $unless: $unless,
   unless: $unless,
   $switch: $switch,
-  switch: $switch
+  switch: $switch,
+  $filter: $filter,
+  'filter': $filter
 };
 
 function cloneIfPossible(callback) {
@@ -828,27 +822,27 @@ function define(name, action, disableAutoClone) {
   // define(actionHash, disableAutoClone)
   if (isPlainObject(name)) {
     disableAutoClone = action;
-    var _iteratorNormalCompletion10 = true;
-    var _didIteratorError10 = false;
-    var _iteratorError10 = undefined;
+    var _iteratorNormalCompletion9 = true;
+    var _didIteratorError9 = false;
+    var _iteratorError9 = undefined;
 
     try {
-      for (var _iterator10 = Object.entries(name)[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
-        var pair = _step10.value;
+      for (var _iterator9 = Object.entries(name)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+        var pair = _step9.value;
 
         actions[pair.key] = disableAutoClone ? pair.value : cloneIfPossible(pair.value);
       }
     } catch (err) {
-      _didIteratorError10 = true;
-      _iteratorError10 = err;
+      _didIteratorError9 = true;
+      _iteratorError9 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion10 && _iterator10.return) {
-          _iterator10.return();
+        if (!_iteratorNormalCompletion9 && _iterator9.return) {
+          _iterator9.return();
         }
       } finally {
-        if (_didIteratorError10) {
-          throw _iteratorError10;
+        if (_didIteratorError9) {
+          throw _iteratorError9;
         }
       }
     }

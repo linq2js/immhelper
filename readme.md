@@ -151,7 +151,8 @@ const original = {
   usingSwitchToUpdate1: 1,
   usingSwitchToUpdate2: {
     value: true
-  }
+  },
+  usingFilter: [1, 2, 3, 4, 5]
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -235,7 +236,8 @@ const specs = {
       male: ["set", "sex", "male"],
       default: ["set", "sex", "female"]
     }
-  ]
+  ],
+  usingFilter: ["filter", x % 2 === 0]
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -321,7 +323,8 @@ expect(result).toEqual({
   usingSwitchToUpdate2: {
     value: true,
     sex: "male"
-  }
+  },
+  usingFilter: [2, 4]
 });
 ```
 

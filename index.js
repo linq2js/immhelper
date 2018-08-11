@@ -284,6 +284,12 @@ export function $push(array) {
   return array;
 }
 
+export function $filter(array, filter) {
+  const newArray = array.filter(filter);
+  if (newArray.length !== array.length) return newArray;
+  return array;
+}
+
 export function $unshift(array) {
   const newItems = arraySlice.call(arguments, 1);
   if (newItems.length) {
@@ -435,8 +441,10 @@ function processSpec(child, value) {
 function processSubSpec(child, value) {
   // is sub spec
   const spec = value[0];
-  const filter = value[1];
   if (spec instanceof Array) {
+    const filter = value[1];
+    const limit = value[2];
+    let applied = 0;
     // apply for each child
     for (let key of Object.keys(child.value)) {
       // only apply spec for child which is satisfied filter
@@ -445,9 +453,13 @@ function processSubSpec(child, value) {
       }
       const newChild = child.child(key);
       newChild.apply.apply(newChild, spec);
+      applied++;
+      if (limit && applied >= limit) {
+        break;
+      }
     }
   } else {
-    for (let key of Object.keys(child.value)) {
+    for (let key in child.value) {
       traversal(child.child(key), spec);
     }
   }
@@ -549,7 +561,9 @@ export const actions = {
   $unless,
   unless: $unless,
   $switch,
-  switch: $switch
+  switch: $switch,
+  $filter,
+  'filter': $filter
 };
 
 function cloneIfPossible(callback) {
