@@ -52,6 +52,7 @@ https://p5243pkx6q.codesandbox.io/
 **immer**: Total elapsed = 71 ms (read) + 6883 ms (write) = 6954 ms<br/>
 **seamless-immutable**: Total elapsed = 88 ms (read) + 50166 ms (write) = 50254 ms<br/>
 **immutability-helper**: Total elapsed = 80 ms (read) + 64408 ms (write) = 64488 ms<br/>
+**update-immutable**: Total elapsed = 89 ms (read) + 67847 ms (write) = 67936 ms<br/>
 
 ### With Deep Freeze
 
@@ -60,6 +61,7 @@ https://p5243pkx6q.codesandbox.io/
 **immer**: Total elapsed = 100 ms (read) + 36421 ms (write) = 36521 ms<br/>
 **immutable-assign**: Total elapsed = 98 ms (read) + 43356 ms (write) = 43454 ms<br/>
 **immutability-helper**: Total elapsed = 98 ms (read) + 95230 ms (write) = 95328 ms<br/>
+**update-immutable**: Total elapsed = 95 ms (read) + 104074 ms (write) = 104169 ms<br/>
 
 ### Summary
 
@@ -68,6 +70,7 @@ https://p5243pkx6q.codesandbox.io/
 2x Faster than immer<br/>
 16x Faster than seamless-immutable<br/>
 19x Faster than immutability-helper<br/>
+20x Faster than update-immutable<br/>
 
 ## Samples
 

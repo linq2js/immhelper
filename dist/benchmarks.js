@@ -30,6 +30,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   var immutabilityHelper = require("immutability-helper");
 
+  var updateImmutable = require("update-immutable").updatePath;
+
   var immhelper = require("./dist/index").default;
 
   var immer = require("immer").default;
@@ -505,6 +507,58 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     }
   };
 
+  var _solUpdateImmutable = {
+    init: function init() {
+      var obj = _.cloneDeep(INITIAL_OBJECT);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    get: function get(obj, key) {
+      return obj[key];
+    },
+    set: function set(obj, key, val) {
+      return updateImmutable(obj, "set", key, val);
+    },
+    getDeep: function getDeep(obj, key1, key2) {
+      return obj[key1][key2];
+    },
+    setDeep: function setDeep(obj, key1, key2, val) {
+      return updateImmutable(obj, "set", [key1, key2], val);
+    },
+    getIn: _getIn,
+    setIn: function setIn(obj, path, val) {
+      return updateImmutable(obj, "set", path, val);
+    },
+    merge: function merge(obj1, obj2) {
+      return updateImmutable(obj1, "merge", '', obj2);
+    },
+    initArr: function initArr(array) {
+      if (!array) {
+        array = INITIAL_ARRAY;
+      }
+
+      var obj = _.cloneDeep(array);
+      if (_isDevel) {
+        obj = deepFreeze(obj);
+      }
+      return obj;
+    },
+    getAt: function getAt(arr, idx) {
+      return arr[idx];
+    },
+    setAt: function setAt(arr, idx, val) {
+      return updateImmutable(arr, "set", idx.toString(), val);
+    },
+    getAtDeep: function getAtDeep(arr, idx1, idx2) {
+      return arr[idx1][idx2];
+    },
+    setAtDeep: function setAtDeep(arr, idx1, idx2, val) {
+      return updateImmutable(arr, "set", [idx1.toString(), idx2.toString()], val);
+    }
+  };
+
   var _solImmutableTimm = {
     init: function init() {
       return _.cloneDeep(INITIAL_OBJECT);
@@ -833,6 +887,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   _allTests("Immutable (Object.assign)", _solObjectAssign);
   _allTests("Immutable (immutable-assign)", _solIassign);
   _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
+  _allTests("Immutable (update-immutable)", _solUpdateImmutable);
   //_allTests("Immutable (immutable.js)", _solImmutableJs);
   // _allTests("Immutable (timm)", _solImmutableTimm);
   _allTests("Immutable (seamless-immutable production)", _solImmutableSeamless);
@@ -844,6 +899,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   _allTests("Immutable (Object.assign) + deep freeze", _solObjectAssign);
   _allTests("Immutable (immutable-assign) + deep freeze", _solIassign);
   _allTests("Immutable (immutability-helper) + deep freeze", _solImmutabilityHelper);
+  _allTests("Immutable (update-immutable) + deep freeze", _solUpdateImmutable);
   _allTests("Immutable (immer) + deep freeze", _solImmer);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
 }).call(undefined);

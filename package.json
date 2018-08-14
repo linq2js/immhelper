@@ -55,6 +55,7 @@
     "deep-freeze-strict": "^1.1.1",
     "immutable-assign": "^2.0.6",
     "immutability-helper": "^2.7.1",
+    "update-immutable": "^1.4.0",
     "immer": "^1.5.0"
   },
   "jest": {
