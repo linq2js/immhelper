@@ -48,7 +48,7 @@
 
   var immutabilityHelper = require("immutability-helper");
 
-  var updateImmutable = require("update-immutable").updatePath;
+  var updateImmutable = require("update-immutable").default;
 
   var immhelper = require("./dist/index").default;
 
@@ -574,20 +574,38 @@
       return obj[key];
     },
     set: function(obj, key, val) {
-      return updateImmutable(obj, "set", key, val);
+      return updateImmutable(obj, { [key]: { $set: val } });
     },
     getDeep: function(obj, key1, key2) {
       return obj[key1][key2];
     },
     setDeep: function(obj, key1, key2, val) {
-      return updateImmutable(obj, "set", [key1, key2], val);
+      return updateImmutable(obj, {
+        [key1]: {
+          [key2]: { $set: val }
+        }
+      });
     },
     getIn: _getIn,
     setIn: function(obj, path, val) {
-      return updateImmutable(obj, "set", path, val);
+      path = path.slice().reverse();
+      const specs = path.reduce(
+        (spec, key) => {
+          return {
+            [key]: spec
+          };
+        },
+        {
+          $set: val
+        }
+      );
+
+      return updateImmutable(obj, specs);
     },
     merge: function(obj1, obj2) {
-      return updateImmutable(obj1, "merge", '', obj2);
+      return updateImmutable(obj1, {
+        $merge: obj2
+      });
     },
     initArr: function(array) {
       if (!array) {
@@ -604,13 +622,23 @@
       return arr[idx];
     },
     setAt: function(arr, idx, val) {
-      return updateImmutable(arr, "set", idx.toString(), val);
+      return updateImmutable(arr, {
+        [idx]: {
+          $set: val
+        }
+      });
     },
     getAtDeep: function(arr, idx1, idx2) {
       return arr[idx1][idx2];
     },
     setAtDeep: function(arr, idx1, idx2, val) {
-      return updateImmutable(arr, "set", [idx1.toString(), idx2.toString()], val);
+      return updateImmutable(arr, {
+        [idx1]: {
+          [idx2]: {
+            $set: val
+          }
+        }
+      });
     }
   };
 
@@ -1036,7 +1064,10 @@
     "Immutable (immutability-helper) + deep freeze",
     _solImmutabilityHelper
   );
-  _allTests("Immutable (update-immutable) + deep freeze", _solUpdateImmutable);
+  _allTests(
+    "Immutable (update-immutable) + deep freeze",
+    _solUpdateImmutable
+  );
   _allTests("Immutable (immer) + deep freeze", _solImmer);
   _allTests("Immutable (immhelper) + deep freeze", _solImmhelper);
 }.call(this));
