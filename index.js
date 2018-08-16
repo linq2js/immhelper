@@ -45,7 +45,7 @@ class Immutable {
     // is batch processing
     if (modifier === $batch) {
       for (let job of args) {
-        if (job instanceof Function) {
+        if (typeof job === "function") {
           job = [job];
         }
         this.apply.apply(this, job);
@@ -61,7 +61,7 @@ class Immutable {
     );
 
     // need special context
-    while (newValue instanceof Function) {
+    while (typeof newValue === "function") {
       newValue = newValue(this);
     }
     // nothing to change
@@ -132,10 +132,10 @@ class Immutable {
   }
 
   childFromPath(path) {
-    return (path instanceof Array
-      ? path
-      : path.split(configs.separator)
-    ).reduce((parent, path) => parent.child(path), this);
+    return (Array.isArray(path) ? path : path.split(configs.separator)).reduce(
+      (parent, path) => parent.child(path),
+      this
+    );
   }
 
   descendants(pattern, specsOrCallback) {
@@ -157,7 +157,7 @@ class Immutable {
         return undefined;
       };
     } else {
-      if (specsOrCallback instanceof Array) {
+      if (Array.isArray(specsOrCallback)) {
         // [match, ...specs]
         // callback can return false to skip checking node or return spec index
         const originalCallback = specsOrCallback[0];
@@ -176,7 +176,7 @@ class Immutable {
     }
 
     function traversal(root, parent, path) {
-      if (parent instanceof Array || isPlainObject(parent)) {
+      if (Array.isArray(parent) || isPlainObject(parent)) {
         for (let pair of Object.entries(parent)) {
           const value = pair[1];
           const key = pair[0];
@@ -222,7 +222,7 @@ export function $unset(current) {
         if (!parent.changed) {
           parent.value = clone(parent.value);
         }
-        if (parent.value instanceof Array) {
+        if (Array.isArray(parent.value)) {
           parent.value.splice(node.path, 1);
         } else {
           delete parent.value[node.path];
@@ -328,11 +328,15 @@ export function $sort(array, sorter) {
 }
 
 function clone(value) {
-  if (value instanceof Array) {
-    return value.slice();
+  if (Array.isArray(value)) {
+    return [].concat(value);
   }
   if (value === null || value === undefined || isPlainObject(value)) {
-    return Object.assign({}, value);
+    const newObject = {};
+    for (let prop in value) {
+      newObject[prop] = value[prop];
+    }
+    return newObject;
   }
   return value;
 }
@@ -363,7 +367,11 @@ export function $assign(obj) {
       for (let key in value) {
         if (value[key] !== mergedObj[key]) {
           if (mergedObj === obj) {
-            mergedObj = Object.assign({}, obj);
+            // clone before updating
+            mergedObj = {};
+            for (let prop in obj) {
+              mergedObj[prop] = obj[prop];
+            }
           }
           mergedObj[key] = value[key];
         }
@@ -411,12 +419,12 @@ export function $if(current, condition, thenSpec, elseSpec) {
 }
 
 export function $switch(current, makeChoice, specs = {}) {
-  if (!(makeChoice instanceof Function)) {
+  if (!(typeof makeChoice === "function")) {
     specs = makeChoice;
     makeChoice = null;
   }
   return spec(
-    specs[makeChoice instanceof Function ? makeChoice(current) : current] ||
+    specs[typeof makeChoice === "function" ? makeChoice(current) : current] ||
       specs.default
   );
 }
@@ -441,7 +449,7 @@ export function $set(current) {
 
 function processSpec(child, value) {
   // is main spec
-  if (value[0] instanceof Function || typeof value[0] === "string") {
+  if (typeof value[0] === "function" || typeof value[0] === "string") {
     // is modifier and its args
     child.apply.apply(child, value);
   } else {
@@ -452,7 +460,7 @@ function processSpec(child, value) {
 function processSubSpec(child, value) {
   // is sub spec
   const spec = value[0];
-  if (spec instanceof Array) {
+  if (Array.isArray(spec)) {
     const filter = value[1];
     const limit = value[2];
     let applied = 0;
@@ -486,11 +494,11 @@ function traversal(parent, node) {
       continue;
     }
     // convert obj method to custom modifier
-    if (value instanceof Function) {
+    if (typeof value === "function") {
       value = [value];
     }
     const child = parent.childFromPath(key);
-    if (value instanceof Array) {
+    if (Array.isArray(value)) {
       processSpec(child, value);
     } else if (isPlainObject(value)) {
       traversal(child, value);
@@ -508,7 +516,7 @@ export function $batch() {
 export const update = (state, changes) => {
   const root = new Immutable(state);
 
-  if (changes instanceof Array) {
+  if (Array.isArray(changes)) {
     processSpec(root, changes);
   } else {
     traversal(root, changes);
@@ -521,7 +529,7 @@ export function updatePath(state, ...specs) {
   const root = new Immutable(state);
 
   for (let spec of specs) {
-    if (spec instanceof Function) {
+    if (typeof spec === "function") {
       spec = [spec];
     }
     const selector = spec[0];

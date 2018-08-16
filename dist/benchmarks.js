@@ -30,7 +30,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   var immutabilityHelper = require("immutability-helper");
 
-  var updateImmutable = require("update-immutable").updatePath;
+  var updateImmutable = require("update-immutable").default;
 
   var immhelper = require("./dist/index").default;
 
@@ -519,20 +519,29 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       return obj[key];
     },
     set: function set(obj, key, val) {
-      return updateImmutable(obj, "set", key, val);
+      return updateImmutable(obj, _defineProperty({}, key, { $set: val }));
     },
     getDeep: function getDeep(obj, key1, key2) {
       return obj[key1][key2];
     },
     setDeep: function setDeep(obj, key1, key2, val) {
-      return updateImmutable(obj, "set", [key1, key2], val);
+      return updateImmutable(obj, _defineProperty({}, key1, _defineProperty({}, key2, { $set: val })));
     },
     getIn: _getIn,
     setIn: function setIn(obj, path, val) {
-      return updateImmutable(obj, "set", path, val);
+      path = path.slice().reverse();
+      var specs = path.reduce(function (spec, key) {
+        return _defineProperty({}, key, spec);
+      }, {
+        $set: val
+      });
+
+      return updateImmutable(obj, specs);
     },
     merge: function merge(obj1, obj2) {
-      return updateImmutable(obj1, "merge", '', obj2);
+      return updateImmutable(obj1, {
+        $merge: obj2
+      });
     },
     initArr: function initArr(array) {
       if (!array) {
@@ -549,13 +558,17 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       return arr[idx];
     },
     setAt: function setAt(arr, idx, val) {
-      return updateImmutable(arr, "set", idx.toString(), val);
+      return updateImmutable(arr, _defineProperty({}, idx, {
+        $set: val
+      }));
     },
     getAtDeep: function getAtDeep(arr, idx1, idx2) {
       return arr[idx1][idx2];
     },
     setAtDeep: function setAtDeep(arr, idx1, idx2, val) {
-      return updateImmutable(arr, "set", [idx1.toString(), idx2.toString()], val);
+      return updateImmutable(arr, _defineProperty({}, idx1, _defineProperty({}, idx2, {
+        $set: val
+      })));
     }
   };
 

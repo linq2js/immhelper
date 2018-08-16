@@ -92,7 +92,7 @@ var Immutable = function () {
           for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var job = _step.value;
 
-            if (job instanceof Function) {
+            if (typeof job === "function") {
               job = [job];
             }
             this.apply.apply(this, job);
@@ -118,7 +118,7 @@ var Immutable = function () {
       var newValue = modifier.apply(null, [this.value instanceof Date ? new Date(this.value.getTime()) : this.value].concat(args));
 
       // need special context
-      while (newValue instanceof Function) {
+      while (typeof newValue === "function") {
         newValue = newValue(this);
       }
       // nothing to change
@@ -240,7 +240,7 @@ var Immutable = function () {
   }, {
     key: "childFromPath",
     value: function childFromPath(path) {
-      return (path instanceof Array ? path : path.split(configs.separator)).reduce(function (parent, path) {
+      return (Array.isArray(path) ? path : path.split(configs.separator)).reduce(function (parent, path) {
         return parent.child(path);
       }, this);
     }
@@ -270,7 +270,7 @@ var Immutable = function () {
           return undefined;
         };
       } else {
-        if (specsOrCallback instanceof Array) {
+        if (Array.isArray(specsOrCallback)) {
           // [match, ...specs]
           // callback can return false to skip checking node or return spec index
           var originalCallback = specsOrCallback[0];
@@ -289,7 +289,7 @@ var Immutable = function () {
       }
 
       function traversal(root, parent, path) {
-        if (parent instanceof Array || isPlainObject(parent)) {
+        if (Array.isArray(parent) || isPlainObject(parent)) {
           var _iteratorNormalCompletion4 = true;
           var _didIteratorError4 = false;
           var _iteratorError4 = undefined;
@@ -381,7 +381,7 @@ function $unset(current) {
         if (!parent.changed) {
           parent.value = clone(parent.value);
         }
-        if (parent.value instanceof Array) {
+        if (Array.isArray(parent.value)) {
           parent.value.splice(node.path, 1);
         } else {
           delete parent.value[node.path];
@@ -497,11 +497,15 @@ function $sort(array, sorter) {
 }
 
 function clone(value) {
-  if (value instanceof Array) {
-    return value.slice();
+  if (Array.isArray(value)) {
+    return [].concat(value);
   }
   if (value === null || value === undefined || isPlainObject(value)) {
-    return Object.assign({}, value);
+    var newObject = {};
+    for (var prop in value) {
+      newObject[prop] = value[prop];
+    }
+    return newObject;
   }
   return value;
 }
@@ -535,7 +539,11 @@ function $assign(obj) {
       for (var key in value) {
         if (value[key] !== mergedObj[key]) {
           if (mergedObj === obj) {
-            mergedObj = Object.assign({}, obj);
+            // clone before updating
+            mergedObj = {};
+            for (var prop in obj) {
+              mergedObj[prop] = obj[prop];
+            }
           }
           mergedObj[key] = value[key];
         }
@@ -587,11 +595,11 @@ function $if(current, condition, thenSpec, elseSpec) {
 function $switch(current, makeChoice) {
   var specs = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-  if (!(makeChoice instanceof Function)) {
+  if (!(typeof makeChoice === "function")) {
     specs = makeChoice;
     makeChoice = null;
   }
-  return spec(specs[makeChoice instanceof Function ? makeChoice(current) : current] || specs.default);
+  return spec(specs[typeof makeChoice === "function" ? makeChoice(current) : current] || specs.default);
 }
 
 function $unless(current, condition, value) {
@@ -614,7 +622,7 @@ function $set(current) {
 
 function processSpec(child, value) {
   // is main spec
-  if (value[0] instanceof Function || typeof value[0] === "string") {
+  if (typeof value[0] === "function" || typeof value[0] === "string") {
     // is modifier and its args
     child.apply.apply(child, value);
   } else {
@@ -625,7 +633,7 @@ function processSpec(child, value) {
 function processSubSpec(child, value) {
   // is sub spec
   var spec = value[0];
-  if (spec instanceof Array) {
+  if (Array.isArray(spec)) {
     var filter = value[1];
     var limit = value[2];
     var applied = 0;
@@ -687,11 +695,11 @@ function traversal(parent, node) {
         continue;
       }
       // convert obj method to custom modifier
-      if (value instanceof Function) {
+      if (typeof value === "function") {
         value = [value];
       }
       var child = parent.childFromPath(key);
-      if (value instanceof Array) {
+      if (Array.isArray(value)) {
         processSpec(child, value);
       } else if (isPlainObject(value)) {
         traversal(child, value);
@@ -723,7 +731,7 @@ function $batch() {
 var update = exports.update = function update(state, changes) {
   var root = new Immutable(state);
 
-  if (changes instanceof Array) {
+  if (Array.isArray(changes)) {
     processSpec(root, changes);
   } else {
     traversal(root, changes);
@@ -747,7 +755,7 @@ function updatePath(state) {
     for (var _iterator8 = specs[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
       var _spec = _step8.value;
 
-      if (_spec instanceof Function) {
+      if (typeof _spec === "function") {
         _spec = [_spec];
       }
       var selector = _spec[0];

@@ -40,37 +40,40 @@ npm install immhelper --save
 
 https://p5243pkx6q.codesandbox.io/
 
+## Change Logs:
+1.0.35: Improve performance. Become fastest package for copying immutable objects.
+
 ## Benchmarks (Fastest to Slowest)
 
 [Show details](benchmarks-result-03.txt)
 
 ### Normal
 
-**Object.assign**: Total elapsed = 107 ms (read) + 2578 ms (write) = 2685 ms<br/>
-**immhelper**: Total elapsed = 74 ms (read) + 3283 ms (write) = 3357 ms<br/>
-**immutable-assign**: Total elapsed = 88 ms (read) + 3970 ms (write) = 4058 ms<br/>
-**immer**: Total elapsed = 71 ms (read) + 6883 ms (write) = 6954 ms<br/>
-**seamless-immutable**: Total elapsed = 88 ms (read) + 50166 ms (write) = 50254 ms<br/>
-**immutability-helper**: Total elapsed = 80 ms (read) + 64408 ms (write) = 64488 ms<br/>
-**update-immutable**: Total elapsed = 89 ms (read) + 67847 ms (write) = 67936 ms<br/>
+**immhelper**: Total elapsed = 72 ms (read) + 2344 ms (write) = 2416 ms<br/>
+**Object.assign**: Total elapsed = 104 ms (read) + 2394 ms (write) = 2498 ms<br/>
+**immutable-assign**: Total elapsed = 82 ms (read) + 3814 ms (write) = 3896 ms<br/>
+**immer**: Total elapsed = 74 ms (read) + 7490 ms (write) = 7564 ms<br/>
+**seamless-immutable**: Total elapsed = 103 ms (read) + 60833 ms (write) = 60936 ms<br/>
+**immutability-helper**: Total elapsed = 84 ms (read) + 65249 ms (write) = 65333 ms<br/>
+**update-immutable**: Total elapsed = 88 ms (read) + 71726 ms (write) = 71814 ms<br/>
 
 ### With Deep Freeze
 
-**Object.assign**: Total elapsed = 99 ms (read) + 28683 ms (write) = 28782 ms<br/>
-**immhelper**: Total elapsed = 93 ms (read) + 29871 ms (write) = 29964 ms<br/>
-**immer**: Total elapsed = 100 ms (read) + 36421 ms (write) = 36521 ms<br/>
-**immutable-assign**: Total elapsed = 98 ms (read) + 43356 ms (write) = 43454 ms<br/>
-**immutability-helper**: Total elapsed = 98 ms (read) + 95230 ms (write) = 95328 ms<br/>
-**update-immutable**: Total elapsed = 95 ms (read) + 104074 ms (write) = 104169 ms<br/>
+**Object.assign**: Total elapsed = 107 ms (read) + 30407 ms (write) = 30514 ms<br/>
+**immhelper**: Total elapsed = 96 ms (read) + 33167 ms (write) = 33263 ms<br/>
+**immer**: Total elapsed = 103 ms (read) + 39337 ms (write) = 39440 ms<br/>
+**immutable-assign**: Total elapsed = 102 ms (read) + 46764 ms (write) = 46866 ms<br/>
+**immutability-helper**: Total elapsed = 104 ms (read) + 105779 ms (write) = 105883 ms<br/>
+**update-immutable**: Total elapsed = 108 ms (read) + 107985 ms (write) = 108093 ms<br/>
 
 ### Summary
 
-1.3x Slower than Object.assign<br/>
-1.1x Faster than immutable-assign<br/>
-2x Faster than immer<br/>
-16x Faster than seamless-immutable<br/>
-19x Faster than immutability-helper<br/>
-20x Faster than update-immutable<br/>
+1.03x Faster than Object.assign<br/>
+1.61x Faster than immutable-assign<br/>
+3.13x Faster than immer<br/>
+25.22x Faster than seamless-immutable<br/>
+27.04x Faster than immutability-helper<br/>
+29.72x Faster than update-immutable<br/>
 
 ## Samples
 
