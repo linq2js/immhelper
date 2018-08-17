@@ -899,13 +899,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   _allTests("Mutable", _solMutable);
   _allTests("Immutable (Object.assign)", _solObjectAssign);
   _allTests("Immutable (immutable-assign)", _solIassign);
+  _allTests("Immutable (immhelper)", _solImmhelper);
   _allTests("Immutable (immutability-helper)", _solImmutabilityHelper);
   _allTests("Immutable (update-immutable)", _solUpdateImmutable);
   //_allTests("Immutable (immutable.js)", _solImmutableJs);
   // _allTests("Immutable (timm)", _solImmutableTimm);
   _allTests("Immutable (seamless-immutable production)", _solImmutableSeamless);
   _allTests("Immutable (immer)", _solImmer);
-  _allTests("Immutable (immhelper)", _solImmhelper);
 
   // Deep freeze initial object/array
   _isDevel = true;

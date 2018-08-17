@@ -2,7 +2,6 @@ const configs = {
   // for fast performance, we process dot as separator only
   separator: "."
 };
-
 const {
   slice: arraySlice,
   shift: arrayShift,
@@ -12,6 +11,7 @@ const {
   splice: arraySplice,
   sort: arraySort
 } = Array.prototype;
+const pathCache = {};
 const contextProp = "@@context";
 export function configure(newConfigs) {
   Object.assign(configs, newConfigs);
@@ -93,18 +93,16 @@ class Immutable {
           }
         }
       } else if (valueUpdated) {
-        const newChildren = [];
-        for (let x of this.children) {
+        this.children = this.children.filter(x => {
           if (x.parent === this && x.path in this.value) {
             x.value = this.value[x.path];
-            newChildren.push(x);
-          } else {
-            // child is removed, so we detach the child
-            delete x.parent;
-            delete this.childMap[x.path];
+            return true;
           }
-        }
-        this.children = newChildren;
+          // child is removed, so we detach the child
+          delete x.parent;
+          delete this.childMap[x.path];
+          return false;
+        });
       }
     }
 
@@ -131,8 +129,15 @@ class Immutable {
     return child;
   }
 
+  parsePath(path) {
+    if (Array.isArray(path)) return path;
+    const cachedPath = pathCache[path];
+    if (cachedPath) return cachedPath;
+    return (pathCache[path] = path.split(configs.separator));
+  }
+
   childFromPath(path) {
-    return (Array.isArray(path) ? path : path.split(configs.separator)).reduce(
+    return this.parsePath(path).reduce(
       (parent, path) => parent.child(path),
       this
     );
@@ -237,14 +242,14 @@ export function $unset(current) {
 
   if (!current) return;
   let newValue = current;
-  props.forEach(prop => {
+  for (let prop of props) {
     if (prop in newValue) {
       if (newValue === current) {
         newValue = clone(current);
       }
       delete newValue[prop];
     }
-  });
+  }
 
   return newValue;
 }
@@ -253,7 +258,7 @@ function arrayOp(array, modifier) {
   if (!array) {
     array = [];
   } else {
-    array = array.slice();
+    array = array.slice(0);
   }
   modifier(array);
   return array;
@@ -329,11 +334,11 @@ export function $sort(array, sorter) {
 
 function clone(value) {
   if (Array.isArray(value)) {
-    return [].concat(value);
+    return value.concat([]);
   }
   if (value === null || value === undefined || isPlainObject(value)) {
     const newObject = {};
-    for (let prop in value) {
+    for (let prop of Object.keys(value)) {
       newObject[prop] = value[prop];
     }
     return newObject;
@@ -359,28 +364,29 @@ export function $swap(current, from, to) {
 }
 
 export function $assign(obj) {
-  const values = arraySlice.call(arguments, 1);
-  if (values.length) {
-    let mergedObj = obj;
-    values.forEach(value => {
-      if (value === null || value === undefined) return;
-      for (let key in value) {
-        if (value[key] !== mergedObj[key]) {
-          if (mergedObj === obj) {
-            // clone before updating
-            mergedObj = {};
-            for (let prop in obj) {
-              mergedObj[prop] = obj[prop];
-            }
+  const length = arguments.length;
+  let mergedObj = obj;
+  let changed = false;
+  for (let index = 1; index < length; index++) {
+    const value = arguments[index];
+    if (value === null || value === undefined) {
+      continue;
+    }
+    for (let key of Object.keys(value)) {
+      if (value[key] !== mergedObj[key]) {
+        if (!changed) {
+          changed = true;
+          // clone before updating
+          mergedObj = {};
+          for (let prop of Object.keys(obj)) {
+            mergedObj[prop] = obj[prop];
           }
-          mergedObj[key] = value[key];
         }
+        mergedObj[key] = value[key];
       }
-    });
-    return mergedObj;
+    }
   }
-
-  return obj;
+  return mergedObj;
 }
 
 function createSelectorProxy(context) {
@@ -433,14 +439,10 @@ export function $unless(current, condition, value) {
   return spec(condition(current) ? undefined : value);
 }
 
-export function $set(current) {
-  const args = arraySlice.call(arguments, 1);
-  if (args.length < 2) {
-    return args[0];
+export function $set(current, prop, value) {
+  if (arguments.length < 3) {
+    return prop;
   }
-  // don't use destructing to improve performance
-  const prop = args[0];
-  const value = args[1];
   if (current[prop] === value) return current;
   const newValue = clone(current);
   newValue[prop] = value;
@@ -478,16 +480,15 @@ function processSubSpec(child, value) {
       }
     }
   } else {
-    for (let key in child.value) {
+    for (let key of Object.keys(child.value)) {
       traversal(child.child(key), spec);
     }
   }
 }
 
 function traversal(parent, node) {
-  for (let pair of Object.entries(node)) {
-    const key = pair[0];
-    let value = pair[1];
+  for (let key of Object.keys(node)) {
+    let value = node[key];
     if (key.charAt(0) === "?") {
       // is wildcard
       parent.descendants(key.substr(1), value);
