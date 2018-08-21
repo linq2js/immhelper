@@ -382,19 +382,33 @@ function $unset(current) {
 
   if (!current) return;
   var newValue = current;
+  if (typeof props[0] === "function") {
+    var filter = props[0];
+    for (var prop in current) {
+      if (!filter(current[prop], prop)) {
+        if (newValue === current) {
+          newValue = {};
+        }
+        newValue[prop] = current[prop];
+      }
+    }
+
+    return newValue;
+  }
+
   var _iteratorNormalCompletion5 = true;
   var _didIteratorError5 = false;
   var _iteratorError5 = undefined;
 
   try {
     for (var _iterator5 = props[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-      var prop = _step5.value;
+      var _prop = _step5.value;
 
-      if (prop in newValue) {
+      if (_prop in newValue) {
         if (newValue === current) {
           newValue = clone(current);
         }
-        delete newValue[prop];
+        delete newValue[_prop];
       }
     }
   } catch (err) {

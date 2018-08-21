@@ -41,6 +41,7 @@ npm install immhelper --save
 https://p5243pkx6q.codesandbox.io/
 
 ## Change Logs:
+
 1.0.35: Improve performance. Become fastest package for copying immutable objects.
 
 ## Benchmarks (Fastest to Slowest)
@@ -158,7 +159,13 @@ const original = {
   usingSwitchToUpdate2: {
     value: true
   },
-  usingFilter: [1, 2, 3, 4, 5]
+  usingFilter: [1, 2, 3, 4, 5],
+  unsetWithFilter: {
+    data1: true,
+    data2: false,
+    data3: true,
+    data4: false
+  }
 };
 const specs = {
   // you can change separator by using configure({ separator: /pattern/ })
@@ -243,7 +250,8 @@ const specs = {
       default: ["set", "sex", "female"]
     }
   ],
-  usingFilter: ["filter", x % 2 === 0]
+  usingFilter: ["filter", x % 2 === 0],
+  unsetWithFilter: ["unset", (value, key) => !!value]
 };
 const result = update(original, specs);
 expect(result).not.toBe(original);
@@ -330,7 +338,11 @@ expect(result).toEqual({
     value: true,
     sex: "male"
   },
-  usingFilter: [2, 4]
+  usingFilter: [2, 4],
+  unsetWithFilter: {
+    data2: false,
+    data4: false
+  }
 });
 ```
 

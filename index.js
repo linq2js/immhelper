@@ -242,6 +242,20 @@ export function $unset(current) {
 
   if (!current) return;
   let newValue = current;
+  if (typeof props[0] === "function") {
+    const filter = props[0];
+    for (let prop in current) {
+      if (!filter(current[prop], prop)) {
+        if (newValue === current) {
+          newValue = {};
+        }
+        newValue[prop] = current[prop];
+      }
+    }
+
+    return newValue;
+  }
+
   for (let prop of props) {
     if (prop in newValue) {
       if (newValue === current) {

@@ -82,7 +82,13 @@ describe("samples", function() {
       usingSwitchToUpdate2: {
         value: true
       },
-      usingFilter: [1, 2, 3, 4, 5]
+      usingFilter: [1, 2, 3, 4, 5],
+      unsetWithFilter: {
+        data1: true,
+        data2: false,
+        data3: true,
+        data4: false
+      }
     };
     const specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -167,7 +173,8 @@ describe("samples", function() {
           default: ["set", "sex", "female"]
         }
       ],
-      usingFilter: ["filter", x => x % 2 === 0]
+      usingFilter: ["filter", x => x % 2 === 0],
+      unsetWithFilter: ["unset", (value, key) => !!value]
     };
     const result = update(original, specs);
 
@@ -255,7 +262,11 @@ describe("samples", function() {
         value: true,
         sex: "male"
       },
-      usingFilter: [2, 4]
+      usingFilter: [2, 4],
+      unsetWithFilter: {
+        data2: false,
+        data4: false
+      }
     });
   });
 

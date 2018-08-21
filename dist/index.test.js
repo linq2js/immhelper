@@ -69,7 +69,13 @@ describe("samples", function () {
       usingSwitchToUpdate2: {
         value: true
       },
-      usingFilter: [1, 2, 3, 4, 5]
+      usingFilter: [1, 2, 3, 4, 5],
+      unsetWithFilter: {
+        data1: true,
+        data2: false,
+        data3: true,
+        data4: false
+      }
     };
     var specs = {
       // you can change separator by using configure({ separator: /pattern/ })
@@ -159,6 +165,9 @@ describe("samples", function () {
       }],
       usingFilter: ["filter", function (x) {
         return x % 2 === 0;
+      }],
+      unsetWithFilter: ["unset", function (value, key) {
+        return !!value;
       }]
     };
     var result = (0, _index.update)(original, specs);
@@ -239,7 +248,11 @@ describe("samples", function () {
         value: true,
         sex: "male"
       },
-      usingFilter: [2, 4]
+      usingFilter: [2, 4],
+      unsetWithFilter: {
+        data2: false,
+        data4: false
+      }
     });
   });
 
