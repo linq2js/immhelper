@@ -529,5 +529,39 @@ describe("update", function () {
     var modified = (0, _index.update)(original, { value: [{ a: [_index.$set, 1] }] });
     expect(modified).toEqual({ value: [{ a: 1 }, { a: 1 }] });
   });
+
+  it("modifier should call setter if any change detected", function () {
+    var original = { name: "Peter" };
+    var nextState = original;
+    var $modifier = (0, _index.createModifier)(function () {
+      return original;
+    }, function (x) {
+      return nextState = x;
+    });
+
+    $modifier({
+      name: "Mary"
+    });
+
+    expect(original).not.toBe(nextState);
+  });
+
+  it("modifier should not call setter if no change detected", function () {
+    var original = { name: "Peter" };
+    var nextState = original;
+    var $modifier = (0, _index.createModifier)(function () {
+      return original;
+    }, function (x) {
+      return nextState = x;
+    });
+
+    $modifier({
+      // empty specs
+    });
+
+    $modifier.set({});
+
+    expect(original).toBe(nextState);
+  });
 });
 //# sourceMappingURL=index.test.js.map

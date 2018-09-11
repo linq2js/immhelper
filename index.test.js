@@ -9,7 +9,7 @@ import {
   $unset,
   $set,
   $remove,
-  mergeDeep
+  createModifier
 } from "./index";
 
 describe("samples", function() {
@@ -563,5 +563,31 @@ describe("update", function() {
     const original = { value: [{ a: 0 }, { a: 0 }] };
     const modified = update(original, { value: [{ a: [$set, 1] }] });
     expect(modified).toEqual({ value: [{ a: 1 }, { a: 1 }] });
+  });
+
+  it("modifier should call setter if any change detected", function() {
+    const original = { name: "Peter" };
+    let nextState = original;
+    const $modifier = createModifier(() => original, x => (nextState = x));
+
+    $modifier({
+      name: "Mary"
+    });
+
+    expect(original).not.toBe(nextState);
+  });
+
+  it("modifier should not call setter if no change detected", function() {
+    const original = { name: "Peter" };
+    let nextState = original;
+    const $modifier = createModifier(() => original, x => (nextState = x));
+
+    $modifier({
+      // empty specs
+    });
+
+    $modifier.set({});
+
+    expect(original).toBe(nextState);
   });
 });

@@ -32,6 +32,7 @@ exports.$set = $set;
 exports.$batch = $batch;
 exports.updatePath = updatePath;
 exports.define = define;
+exports.createModifier = createModifier;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -92,10 +93,14 @@ var Immutable = function () {
           for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var job = _step.value;
 
-            if (typeof job === "function") {
-              job = [job];
+            if (isPlainObject(job)) {
+              processSpec(this, job);
+            } else {
+              if (typeof job === "function") {
+                job = [job];
+              }
+              this.apply.apply(this, job);
             }
-            this.apply.apply(this, job);
           }
         } catch (err) {
           _didIteratorError = true;
@@ -965,5 +970,30 @@ function define(name, action, disableAutoClone) {
     // define(name, action, disableAutoClone)
     actions[name] = disableAutoClone ? action : cloneIfPossible(action);
   }
+}
+
+function createModifier(getter, setter) {
+  return Object.assign(function (specs) {
+    var state = getter();
+    var nextState = update(state, specs);
+    if (state !== nextState) {
+      setter(nextState);
+    }
+  }, {
+    set: function set(nextState) {
+      if (nextState === null || nextState === undefined) return;
+      var state = getter();
+      if (!state) {
+        setter(nextState);
+        return;
+      }
+      for (var prop in nextState) {
+        if (state[prop] !== nextState) {
+          setter(nextState);
+          return;
+        }
+      }
+    }
+  });
 }
 //# sourceMappingURL=index.js.map

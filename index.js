@@ -45,10 +45,14 @@ class Immutable {
     // is batch processing
     if (modifier === $batch) {
       for (let job of args) {
-        if (typeof job === "function") {
-          job = [job];
+        if (isPlainObject(job)) {
+          processSpec(this, job);
+        } else {
+          if (typeof job === "function") {
+            job = [job];
+          }
+          this.apply.apply(this, job);
         }
-        this.apply.apply(this, job);
       }
       return this;
     }
@@ -620,4 +624,32 @@ export function define(name, action, disableAutoClone) {
     // define(name, action, disableAutoClone)
     actions[name] = disableAutoClone ? action : cloneIfPossible(action);
   }
+}
+
+export function createModifier(getter, setter) {
+  return Object.assign(
+    function(specs) {
+      const state = getter();
+      const nextState = update(state, specs);
+      if (state !== nextState) {
+        setter(nextState);
+      }
+    },
+    {
+      set(nextState) {
+        if (nextState === null || nextState === undefined) return;
+        const state = getter();
+        if (!state) {
+          setter(nextState);
+          return;
+        }
+        for (let prop in nextState) {
+          if (state[prop] !== nextState) {
+            setter(nextState);
+            return;
+          }
+        }
+      }
+    }
+  );
 }
