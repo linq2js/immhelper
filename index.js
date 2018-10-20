@@ -292,6 +292,18 @@ export function $splice(array, index, count) {
   return array;
 }
 
+export function $map(array, mapper) {
+  let hasChange = false;
+  const newArray = array.map(function() {
+    const newItem = mapper.apply(this, arguments);
+    if (newItem !== arguments[0]) {
+      hasChange = true;
+    }
+    return newItem;
+  });
+  return hasChange ? newArray : array;
+}
+
 export function $removeAt(array) {
   const indexes = arraySlice.call(arguments, 1);
   let newArray = array;
@@ -601,7 +613,9 @@ export const actions = {
   $switch,
   switch: $switch,
   $filter,
-  filter: $filter
+  filter: $filter,
+  map: $map,
+  $map
 };
 
 function cloneIfPossible(callback) {
@@ -616,9 +630,9 @@ export function define(name, action, disableAutoClone) {
   if (isPlainObject(name)) {
     disableAutoClone = action;
     for (let pair of Object.entries(name)) {
-      actions[pair.key] = disableAutoClone
+      actions[pair[0]] = disableAutoClone
         ? pair.value
-        : cloneIfPossible(pair.value);
+        : cloneIfPossible(pair[1]);
     }
   } else {
     // define(name, action, disableAutoClone)

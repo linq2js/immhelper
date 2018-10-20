@@ -14,6 +14,7 @@ exports.configure = configure;
 exports.$toggle = $toggle;
 exports.$unset = $unset;
 exports.$splice = $splice;
+exports.$map = $map;
 exports.$removeAt = $removeAt;
 exports.$push = $push;
 exports.$filter = $filter;
@@ -452,6 +453,18 @@ function $splice(array, index, count) {
     });
   }
   return array;
+}
+
+function $map(array, mapper) {
+  var hasChange = false;
+  var newArray = array.map(function () {
+    var newItem = mapper.apply(this, arguments);
+    if (newItem !== arguments[0]) {
+      hasChange = true;
+    }
+    return newItem;
+  });
+  return hasChange ? newArray : array;
 }
 
 function $removeAt(array) {
@@ -928,7 +941,9 @@ var actions = exports.actions = {
   $switch: $switch,
   switch: $switch,
   $filter: $filter,
-  filter: $filter
+  filter: $filter,
+  map: $map,
+  $map: $map
 };
 
 function cloneIfPossible(callback) {
@@ -950,7 +965,7 @@ function define(name, action, disableAutoClone) {
       for (var _iterator13 = Object.entries(name)[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
         var pair = _step13.value;
 
-        actions[pair.key] = disableAutoClone ? pair.value : cloneIfPossible(pair.value);
+        actions[pair[0]] = disableAutoClone ? pair.value : cloneIfPossible(pair[1]);
       }
     } catch (err) {
       _didIteratorError13 = true;
