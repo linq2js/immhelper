@@ -1,6 +1,7 @@
 const configs = {
   // for fast performance, we process dot as separator only
-  separator: "."
+  separator: ".",
+  defaultValuePrefix: "@@"
 };
 const {
   slice: arraySlice,
@@ -529,7 +530,9 @@ function processSubSpec(child, value) {
 function traversal(parent, node) {
   for (let key of Object.keys(node)) {
     // dont process default value
-    if (key.indexOf("@@") === 0) continue;
+    if (key.indexOf(configs.defaultValuePrefix) === 0) {
+      continue;
+    }
     let value = node[key];
     if (key.charAt(0) === "?") {
       // is wildcard
@@ -540,7 +543,11 @@ function traversal(parent, node) {
     if (typeof value === "function") {
       value = [value];
     }
-    const child = parent.childFromPath(key, node["@@" + key]);
+    const child = parent.childFromPath(
+      key,
+      // get default value factory
+      node[configs.defaultValuePrefix + key]
+    );
     if (Array.isArray(value)) {
       processSpec(child, value);
     } else if (isPlainObject(value)) {
@@ -683,4 +690,8 @@ export function createModifier(getter, setter) {
       }
     }
   );
+}
+
+export function defaultOf(prop) {
+  return configs.defaultValuePrefix + prop;
 }

@@ -34,12 +34,14 @@ exports.$batch = $batch;
 exports.updatePath = updatePath;
 exports.define = define;
 exports.createModifier = createModifier;
+exports.defaultOf = defaultOf;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var configs = {
   // for fast performance, we process dot as separator only
-  separator: "."
+  separator: ".",
+  defaultValuePrefix: "@@"
 };
 var _Array$prototype = Array.prototype,
     arraySlice = _Array$prototype.slice,
@@ -819,7 +821,9 @@ function traversal(parent, node) {
       var key = _step11.value;
 
       // dont process default value
-      if (key.indexOf("@@") === 0) continue;
+      if (key.indexOf(configs.defaultValuePrefix) === 0) {
+        continue;
+      }
       var value = node[key];
       if (key.charAt(0) === "?") {
         // is wildcard
@@ -830,7 +834,9 @@ function traversal(parent, node) {
       if (typeof value === "function") {
         value = [value];
       }
-      var child = parent.childFromPath(key, node["@@" + key]);
+      var child = parent.childFromPath(key,
+      // get default value factory
+      node[configs.defaultValuePrefix + key]);
       if (Array.isArray(value)) {
         processSpec(child, value);
       } else if (isPlainObject(value)) {
@@ -1029,5 +1035,9 @@ function createModifier(getter, setter) {
       }
     }
   });
+}
+
+function defaultOf(prop) {
+  return configs.defaultValuePrefix + prop;
 }
 //# sourceMappingURL=index.js.map
