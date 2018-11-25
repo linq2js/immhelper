@@ -714,6 +714,9 @@ function $set(current, prop, value) {
   if (arguments.length < 3) {
     return prop;
   }
+  if (typeof value === "function") {
+    value = value(current[prop], current);
+  }
   if (current[prop] === value) return current;
   var newValue = clone(current);
   newValue[prop] = value;
@@ -849,6 +852,13 @@ function $batch() {
 }
 
 var update = exports.update = function update(state, changes) {
+  // create curry func
+  if (arguments.length === 1) {
+    changes = state;
+    return function (state) {
+      return update(state, changes);
+    };
+  }
   var root = new Immutable(state);
 
   if (Array.isArray(changes)) {

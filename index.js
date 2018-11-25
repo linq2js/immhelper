@@ -473,6 +473,9 @@ export function $set(current, prop, value) {
   if (arguments.length < 3) {
     return prop;
   }
+  if (typeof value === "function") {
+    value = value(current[prop], current);
+  }
   if (current[prop] === value) return current;
   const newValue = clone(current);
   newValue[prop] = value;
@@ -544,7 +547,12 @@ export function $batch() {
   // do nothing
 }
 
-export const update = (state, changes) => {
+export const update = function(state, changes) {
+  // create curry func
+  if (arguments.length === 1) {
+    changes = state;
+    return state => update(state, changes);
+  }
   const root = new Immutable(state);
 
   if (Array.isArray(changes)) {
