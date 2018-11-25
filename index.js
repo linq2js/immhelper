@@ -123,13 +123,20 @@ class Immutable {
     return this.parent;
   }
 
-  child(path) {
+  child(path, defaultFactory) {
     if (path in this.childMap) {
       return this.childMap[path];
     }
+    const isExisting = path in this.value;
     const child = new Immutable(this.value[path], this, path);
     this.children.push(child);
     this.childMap[path] = child;
+
+    if (!isExisting && defaultFactory) {
+      child.value = defaultFactory(this.value, path);
+      child.change(true);
+    }
+
     return child;
   }
 
@@ -140,9 +147,9 @@ class Immutable {
     return (pathCache[path] = path.split(configs.separator));
   }
 
-  childFromPath(path) {
+  childFromPath(path, defaultFactory) {
     return this.parsePath(path).reduce(
-      (parent, path) => parent.child(path),
+      (parent, path) => parent.child(path, defaultFactory),
       this
     );
   }
@@ -521,6 +528,8 @@ function processSubSpec(child, value) {
 
 function traversal(parent, node) {
   for (let key of Object.keys(node)) {
+    // dont process default value
+    if (key.indexOf("@@") === 0) continue;
     let value = node[key];
     if (key.charAt(0) === "?") {
       // is wildcard
@@ -531,7 +540,7 @@ function traversal(parent, node) {
     if (typeof value === "function") {
       value = [value];
     }
-    const child = parent.childFromPath(key);
+    const child = parent.childFromPath(key, node["@@" + key]);
     if (Array.isArray(value)) {
       processSpec(child, value);
     } else if (isPlainObject(value)) {

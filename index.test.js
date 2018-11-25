@@ -13,6 +13,38 @@ import {
 } from "./index";
 
 describe("samples", function() {
+  it("default value factory should be called if child node is not present in parent node", () => {
+    const original = {};
+
+    const specs = {
+      undefinedChild: ["set", "value", 1],
+      "@@undefinedChild": () => ({ def: true })
+    };
+
+    const result = update(original, specs);
+
+    expect(result).toEqual({
+      undefinedChild: {
+        def: true,
+        value: 1
+      }
+    });
+  });
+
+  it("should get an error when try to process undefined child node", () => {
+    const original = {};
+
+    const specs = {
+      undefinedChild: ["set", "value", 1]
+    };
+
+    try {
+      update(original, specs);
+    } catch (e) {
+      expect(e.message).toBe("Cannot read property 'value' of undefined");
+    }
+  });
+
   it("all api", function() {
     const original = {
       a: {

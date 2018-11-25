@@ -3,6 +3,40 @@
 var _index = require("./index");
 
 describe("samples", function () {
+  it("default value factory should be called if child node is not present in parent node", function () {
+    var original = {};
+
+    var specs = {
+      undefinedChild: ["set", "value", 1],
+      "@@undefinedChild": function undefinedChild() {
+        return { def: true };
+      }
+    };
+
+    var result = (0, _index.update)(original, specs);
+
+    expect(result).toEqual({
+      undefinedChild: {
+        def: true,
+        value: 1
+      }
+    });
+  });
+
+  it("should get an error when try to process undefined child node", function () {
+    var original = {};
+
+    var specs = {
+      undefinedChild: ["set", "value", 1]
+    };
+
+    try {
+      (0, _index.update)(original, specs);
+    } catch (e) {
+      expect(e.message).toBe("Cannot read property 'value' of undefined");
+    }
+  });
+
   it("all api", function () {
     var original = {
       a: {

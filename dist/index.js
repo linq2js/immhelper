@@ -212,13 +212,20 @@ var Immutable = function () {
     }
   }, {
     key: "child",
-    value: function child(path) {
+    value: function child(path, defaultFactory) {
       if (path in this.childMap) {
         return this.childMap[path];
       }
+      var isExisting = path in this.value;
       var child = new Immutable(this.value[path], this, path);
       this.children.push(child);
       this.childMap[path] = child;
+
+      if (!isExisting && defaultFactory) {
+        child.value = defaultFactory(this.value, path);
+        child.change(true);
+      }
+
       return child;
     }
   }, {
@@ -231,9 +238,9 @@ var Immutable = function () {
     }
   }, {
     key: "childFromPath",
-    value: function childFromPath(path) {
+    value: function childFromPath(path, defaultFactory) {
       return this.parsePath(path).reduce(function (parent, path) {
-        return parent.child(path);
+        return parent.child(path, defaultFactory);
       }, this);
     }
   }, {
@@ -811,6 +818,8 @@ function traversal(parent, node) {
     for (var _iterator11 = Object.keys(node)[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
       var key = _step11.value;
 
+      // dont process default value
+      if (key.indexOf("@@") === 0) continue;
       var value = node[key];
       if (key.charAt(0) === "?") {
         // is wildcard
@@ -821,7 +830,7 @@ function traversal(parent, node) {
       if (typeof value === "function") {
         value = [value];
       }
-      var child = parent.childFromPath(key);
+      var child = parent.childFromPath(key, node["@@" + key]);
       if (Array.isArray(value)) {
         processSpec(child, value);
       } else if (isPlainObject(value)) {
