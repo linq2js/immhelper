@@ -720,13 +720,18 @@ function $unless(current, condition, value) {
 }
 
 function $set(current, prop, value) {
+  var comparer = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : isEqual;
+
   if (arguments.length < 3) {
     return prop;
   }
+
   if (typeof value === "function") {
     value = value(current[prop], current);
   }
-  if (current[prop] === value) return current;
+
+  if (comparer(current[prop], value)) return current;
+
   var newValue = clone(current);
   newValue[prop] = value;
   return newValue;

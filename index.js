@@ -477,14 +477,17 @@ export function $unless(current, condition, value) {
   return spec(condition(current) ? undefined : value);
 }
 
-export function $set(current, prop, value) {
+export function $set(current, prop, value, comparer = isEqual) {
   if (arguments.length < 3) {
     return prop;
   }
+
   if (typeof value === "function") {
     value = value(current[prop], current);
   }
-  if (current[prop] === value) return current;
+
+  if (comparer(current[prop], value)) return current;
+
   const newValue = clone(current);
   newValue[prop] = value;
   return newValue;
