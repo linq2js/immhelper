@@ -47,7 +47,7 @@ class Immutable {
     if (modifier === $batch) {
       for (let job of args) {
         if (isPlainObject(job)) {
-          processSpec(this, job);
+          traversal(this, job);
         } else {
           if (typeof job === "function") {
             job = [job];
@@ -573,8 +573,12 @@ export const update = function(state, changes) {
     return state => update(state, changes);
   }
   const root = new Immutable(state);
+  root.type = "root";
 
-  if (Array.isArray(changes)) {
+  if (arguments.length > 2) {
+    // multiple specs
+    processSpec(root, [$batch, ...[].slice.call(arguments, 1)]);
+  } else if (Array.isArray(changes)) {
     processSpec(root, changes);
   } else {
     traversal(root, changes);

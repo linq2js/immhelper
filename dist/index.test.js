@@ -3,6 +3,23 @@
 var _index = require("./index");
 
 describe("samples", function () {
+  it("using multiple specs to update", function () {
+    var original = {
+      obj: {
+        name: "peter"
+      }
+    };
+
+    var result = (0, _index.update)(original, { obj: ["set", "name", "mary"] }, ["set", 2, false]);
+
+    expect(result).toEqual({
+      obj: {
+        name: "mary"
+      },
+      2: false
+    });
+  });
+
   it("default value factory should be called if child node is not present in parent node", function () {
     var original = {};
 
