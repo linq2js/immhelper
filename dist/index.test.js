@@ -3,6 +3,19 @@
 var _index = require("./index");
 
 describe("samples", function () {
+  it("using produce to update state with dynamic specs", function () {
+    var specs = {
+      todos: ["produce", function (value) {
+        return value[0] === 1 ? ["push", 1] : ["push", 2];
+      }]
+    };
+    var result1 = (0, _index.update)({ todos: [1] }, specs);
+    var result2 = (0, _index.update)({ todos: [2] }, specs);
+
+    expect(result1).toEqual({ todos: [1, 1] });
+    expect(result2).toEqual({ todos: [2, 2] });
+  });
+
   it("using multiple specs to update", function () {
     var original = {
       obj: {

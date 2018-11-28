@@ -13,6 +13,17 @@ import {
 } from "./index";
 
 describe("samples", function() {
+  it("using produce to update state with dynamic specs", () => {
+    const specs = {
+      todos: ["produce", value => (value[0] === 1 ? ["push", 1] : ["push", 2])]
+    };
+    const result1 = update({ todos: [1] }, specs);
+    const result2 = update({ todos: [2] }, specs);
+
+    expect(result1).toEqual({ todos: [1, 1] });
+    expect(result2).toEqual({ todos: [2, 2] });
+  });
+
   it("using multiple specs to update", () => {
     const original = {
       obj: {

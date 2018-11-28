@@ -493,6 +493,10 @@ export function $set(current, prop, value, comparer = isEqual) {
   return newValue;
 }
 
+export function $produce(current, recipe) {
+  return spec(recipe(current));
+}
+
 function processSpec(child, value) {
   // is main spec
   if (typeof value[0] === "function" || typeof value[0] === "string") {
@@ -646,7 +650,9 @@ export const actions = {
   $filter,
   filter: $filter,
   map: $map,
-  $map
+  $map,
+  produce: $produce,
+  $produce
 };
 
 function cloneIfPossible(callback) {

@@ -30,6 +30,7 @@ exports.$if = $if;
 exports.$switch = $switch;
 exports.$unless = $unless;
 exports.$set = $set;
+exports.$produce = $produce;
 exports.$batch = $batch;
 exports.updatePath = updatePath;
 exports.define = define;
@@ -739,6 +740,10 @@ function $set(current, prop, value) {
   return newValue;
 }
 
+function $produce(current, recipe) {
+  return spec(recipe(current));
+}
+
 function processSpec(child, value) {
   // is main spec
   if (typeof value[0] === "function" || typeof value[0] === "string") {
@@ -979,7 +984,9 @@ var actions = exports.actions = {
   $filter: $filter,
   filter: $filter,
   map: $map,
-  $map: $map
+  $map: $map,
+  produce: $produce,
+  $produce: $produce
 };
 
 function cloneIfPossible(callback) {
