@@ -581,7 +581,7 @@ export const update = function(state, changes) {
 
   if (arguments.length > 2) {
     // multiple specs
-    processSpec(root, [$batch, ...[].slice.call(arguments, 1)]);
+    processSpec(root, [$batch].concat([].slice.call(arguments, 1)));
   } else if (Array.isArray(changes)) {
     processSpec(root, changes);
   } else {

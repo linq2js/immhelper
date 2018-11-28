@@ -1,6 +1,6 @@
 {
   "name": "immhelper",
-  "version": "1.0.49",
+  "version": "1.0.50",
   "description": "Fast and lightweight library helps you to update js objects without mutating them",
   "main": "./dist/index.js",
   "scripts": {
